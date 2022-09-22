@@ -1,0 +1,69 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{fullpage}
+\author{Hari Sitaraman}
+\title{$H_2$-$O_2$ Chemistry}
+\begin{document}
+\maketitle
+
+\section{$H_2$ chemistry}
+
+The reactions are in the Arrhenius form given by
+\begin{equation}
+	k=A T^B exp(-C/T)
+\end{equation}
+
+The rate constants are in units of $cm^3 s^{-1}$.
+
+\begin{table}[h] \centering
+\caption{$\mathrm{H_2}$ chemistry}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+S/N & Reaction & A & B & C & Energy (eV) & Ref. \\
+\hline
+1   & $\mathrm{H     + E   \rightarrow H^+ + 2E}$       &  6.5023E-09 & 0.48931  & 149624.36 & 12.89365 &\cite{Hchem}\\
+2   & $\mathrm{H_2   + E   \rightarrow H^+ + H + 2E}$   &  2.9962E-08 & 0.44456  & 437818.75 & 37.72836 &\cite{Hchem}\\
+3   & $\mathrm{H_2^+ + E   \rightarrow H^+ + H + E}$    &  1.0702E-07 & 0.04876  & 112450.85 &  9.69028 &\cite{Hchem}\\
+4   & $\mathrm{H_2^+ + E   \rightarrow H^+ + H^+ + 2E}$ &  2.1202E-09 & 0.31394  & 270371.5  & 23.29885 &\cite{Hchem}\\
+5   & $\mathrm{H_2^+ + H   \rightarrow H_2 + H^+}$      &  9.0E-10    & 0.0      & 0.0       & 0.0      &\cite{Hchem}\\
+6   & $\mathrm{H_2   + H^+ \rightarrow H_2^+ + H}$      &  1.19E-22   & 0.0      & 0.0       & 0.0      &\cite{Hchem}\\
+7   & $\mathrm{H_2   + E   \rightarrow H_2^+ + 2E}$     &  3.1228E-08 & 0.17156  & 232987.49 & 20.07734 &\cite{Hchem}\\
+8   & $\mathrm{H_2   + E   \rightarrow 2 H   + E}$      &  1.7527E-07 & -1.23668 & 146128.85 & 12.59243 &\cite{Hchem}\\
+\hline
+\end{tabular}
+\end{table}
+
+\section{$O_2$ chemistry}
+
+\begin{table}[h] \centering
+	\caption{$\mathrm{O_2}$ chemistry}
+	\begin{tabular}{|c|c|c|c|c|c|c|}
+	\hline
+	S/N & Reaction & A & B & C & Energy(eV) & Ref. \\
+	\hline
+	1  & $\mathrm{O_2 + E     \rightarrow O_2^+ + 2E}$  & 9.0E-10    &  2.0   &  146216.7   & 12.6  &\cite{Ochem}\\
+	2  & $\mathrm{O_2 + E     \rightarrow 2 O +    E}$  & 4.23E-09   &  0.0   &  64521.02  &  5.56  &\cite{Ochem}\\
+	3  & $\mathrm{O_2 + E     \rightarrow   O +  O^-}$  & 4.6E-11    &  0.0   &  33769.095 &  4.2   &\cite{Ochem,Ochemd}\\
+	4  & $\mathrm{O   + E     \rightarrow  O^+ +  2E}$  & 9.0E-09    &  0.7   &  157821.2  &  13.6  &\cite{Ochem,Ochemd}\\
+	5  & $\mathrm{O^- + O_2^+ \rightarrow  O   + O_2}$  & 3.46E-06	 & -0.5   &  0.0       & -10.61 &\cite{Ochemd}\\
+	6  & $\mathrm{O^- + O^+   \rightarrow  O   + O  }$  & 4.68E-06   & -0.5   &  0.0       & -12.69 &\cite{Ochemd}\\
+	7  & $\mathrm{O^- + E     \rightarrow  O   + 2E }$  & 2.10E-10   &  0.5   &  39400     & 0.92   &\cite{Ochemd}\\
+	\hline
+	\end{tabular}
+\end{table}
+
+%notes:
+%reactions 5,6,7 are taken from doug's work. They are for O and O(3P).
+%reaction 3 has higher order terms in the arrhenius exponential, the energy for this
+%reaction is from Doug's thesis.
+%reaction 4 energy is from doug's thesis and Lee's paper
+%it seems O(3P) is ground state in Lee and graves paper (same as just O)
+%for now not looking at metastable O(1D)
+%For the H2 chemistry, all Te is in electron volts, even Te^B term
+%For O2 chemistry, Lee et al. uses eV even for the power term Te^B.
+
+\bibliographystyle{unsrt}
+\bibliography{refs}
+
+\end{document}
