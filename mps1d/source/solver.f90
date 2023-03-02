@@ -79,29 +79,29 @@ subroutine init()
 	open(unit=logfileptr,file="plsolver.log")
 	
 	!discharge gap,time step size,scales
-	read(inpfptr,*),temp
-	read(inpfptr,*),temp,length
-	read(inpfptr,*),temp,np
-	read(inpfptr,*),temp,dt
-	read(inpfptr,*),temp,maxtimesteps
-	read(inpfptr,*),temp,printfileit
-	read(inpfptr,*),temp,printit
-	read(inpfptr,*),temp,finaltime
-	read(inpfptr,*),temp,nscale
+	read(inpfptr,*) temp
+	read(inpfptr,*) temp,length
+	read(inpfptr,*) temp,np
+	read(inpfptr,*) temp,dt
+	read(inpfptr,*) temp,maxtimesteps
+	read(inpfptr,*) temp,printfileit
+	read(inpfptr,*) temp,printit
+	read(inpfptr,*) temp,finaltime
+	read(inpfptr,*) temp,nscale
 
 	dx = length/(np-1)
 
 	!Restart parameters
-	read(inpfptr,*),temp
-	read(inpfptr,*),temp,restart_option
+	read(inpfptr,*) temp
+	read(inpfptr,*) temp,restart_option
 	
 	if(restart_option .eq. 1) then
 		restart = .true.
 	else
 		restart = .false.
 	endif
-	read(inpfptr,*),temp,restartfname
-	read(inpfptr,*),temp,restart_time
+	read(inpfptr,*) temp,restartfname
+	read(inpfptr,*) temp,restart_time
 	if(restart .eqv. .true.) then
         	restart_it = floor(restart_time/dt)+1
 	else
@@ -110,32 +110,32 @@ subroutine init()
 	endif
 
 	!neutral gas parameters
-	read(inpfptr,*),temp	
-	read(inpfptr,*),temp,P_gas
-	read(inpfptr,*),temp,T_gas
+	read(inpfptr,*) temp	
+	read(inpfptr,*) temp,P_gas
+	read(inpfptr,*) temp,T_gas
 	N_gas = P_gas/k_B/T_gas       ! neutral density (#/m3)
 	specinit(1) = N_gas
 
 	!potential equation bcs
-	read(inpfptr,*),temp	
-	read(inpfptr,*),temp,voltage_L
-	read(inpfptr,*),temp,voltage_R
+	read(inpfptr,*) temp	
+	read(inpfptr,*) temp,voltage_L
+	read(inpfptr,*) temp,voltage_R
 
 	!Electron temperature,sec elec emission
-	read(inpfptr,*),temp
-	read(inpfptr,*),temp,Tefixed
-	read(inpfptr,*),temp,Temin
-	read(inpfptr,*),temp,sec_elec_coeff
+	read(inpfptr,*) temp
+	read(inpfptr,*) temp,Tefixed
+	read(inpfptr,*) temp,Temin
+	read(inpfptr,*) temp,sec_elec_coeff
 	
 	!number densities
-	read(inpfptr,*),temp
+	read(inpfptr,*) temp
 	do i=1,nspecies
-		read(inpfptr,*),temp,specinit(i)
+		read(inpfptr,*) temp,specinit(i)
 	enddo
 	
 	!number densities
-	read(inpfptr,*),temp
-	read(inpfptr,*),prob_specific_params(:)
+	read(inpfptr,*) temp
+	read(inpfptr,*) prob_specific_params(:)
 
 	nemin = 1.0d11                ! #/m3
 	Tescale = echarge/k_B         ! scale Te to be eV
