@@ -4,119 +4,93 @@ from sys import argv
 #===================================================================
 def getspecinfo():
 
-	str1="#NUMBER DENSITIES\n"
-	infile=open('plasma_inputs','r')
+    str1="#NUMBER DENSITIES"
+    infile=open('plasma_inputs','r')
 
-	infile.readline()
-	line=infile.readline()
+    all_lines=infile.readlines()
 
-	l=float(line.split()[1])
+    gapd=float(all_lines[1].split()[1])
 
-	for line in infile:
-			if(line == str1):
-				break
-	specnames=[]
+    specstartlinenum=0
+    for line in all_lines:
+        specstartlinenum+=1
+        if(line.strip() == str1):
+            break
 
-	for line in infile:
-		specnames.append(line.split()[0])
+    specnames=[]
 
-	nbgspc=0
-	for i in range(len(specnames)):
-		if(specnames[i] == 'E'):
-			break
-	nbgspc=i
-			
-	nions=0
-	for i in range(len(specnames)):
-		if(specnames[i] == 'E'):
-			especnum=i
-		if(len(specnames[i].split('+')) > 1):
-			nions=nions+1
-		if(len(specnames[i].split('-')) > 1):
-			nions=nions+1
-	
-	infile.close()
+    nspecnum=0
+    for l in range(specstartlinenum,len(all_lines)):
+        if(all_lines[l].strip()=="#PROBLEM SPECIFIC PARAMETERS"):
+            break
+        nspecnum+=1
 
-	nneutrals=len(specnames)-nions-nbgspc-1
+    for l in range(specstartlinenum,specstartlinenum+nspecnum):
+        specnames.append(all_lines[l].split()[0])
+    
 
-	return(specnames,especnum,nbgspc,nions,nneutrals,l)
+    nbgspc=0
+    for i in range(len(specnames)):
+        if(specnames[i] == 'E'):
+            break
+    nbgspc=i
+    especnum=i+1
+
+    nions=0
+    for i in range(len(specnames)):
+        if(specnames[i] == 'E'):
+            especnum=i
+        if(len(specnames[i].split('+')) > 1):
+            nions=nions+1
+        if(len(specnames[i].split('-')) > 1):
+            nions=nions+1
+
+    infile.close()
+
+    nneutrals=len(specnames)-nions-nbgspc-1
+
+    return(specnames,especnum,nbgspc,nions,nneutrals,gapd)
 #===================================================================
 def readfile(filename,enum,nbgspecies,nions,nneutrals,nspecies):
 
-	infile=open(filename,'r')
+    infile=open(filename,'r')
 
-	x        = np.array([])
-	elecden  = np.array([])
+    arr=np.loadtxt(filename)
 
-	ionden   = np.array([])
-	nden     = np.array([])
-	potential= np.array([])
-	efield   = np.array([])
-	electemp = np.array([])
-	jheating = np.array([])
-	elasticol = np.array([])
-	inelasticol = np.array([])
-	electroncurr = np.array([])
-	ioncurr = np.array([])
+    offset=0
+    x        = arr[:,offset]
+    offset+=1
+    potential= arr[:,offset]
+    offset+=1
+    efield   = arr[:,offset]
+    offset+=1
 
-	especnum=enum+3
+    nden     = arr[:,offset:offset+nbgspecies]
+    offset += nbgspecies
+    elecden  = arr[:,offset]
+    offset+=1
+    ionden    = arr[:,offset:offset+nions]
+    offset+= nions
+    elecenrg = arr[:,offset]
+    offset+=1
+    electemp  = arr[:,offset]
+    offset+=1
+    jheating = arr[:,offset]
+    offset+=1
+    elasticol = arr[:,offset]
+    offset+=1
+    inelasticol = arr[:,offset]
+    offset+=1
+    electroncurr = arr[:,offset]
+    offset+=1
+    ioncurr = arr[:,offset]
 
-	for line in infile:
-
-		spltline=line.split()
-
-		offset=0
-		x = np.append(x,float(spltline[0]))
-		
-		offset=offset+1
-		potential=np.append(potential,float(spltline[offset]))
-
-		offset=offset+1
-		efield=np.append(efield,float(spltline[offset]))
-		
-		for i in range(nbgspecies):
-			offset=offset+1
-			nden=np.append(nden,float(spltline[offset]))
-
-		offset=offset+1
-		elecden=np.append(elecden,float(spltline[offset]))
-		
-		for i in range(nions):
-			offset=offset+1
-			ionden=np.append(ionden,float(spltline[offset]))
-
-		for i in range(nneutrals):
-			offset=offset+1
-			nden=np.append(nden,float(spltline[offset]))
-
-		#missing electron energy field
-		offset=offset+2
-		electemp = np.append(electemp,float(spltline[offset]))
-		
-		offset=offset+1
-		jheating = np.append(jheating,float(spltline[offset]))
-
-		offset=offset+1
-		elasticol = np.append(elasticol,float(spltline[offset]))
-		
-		offset=offset+1
-		inelasticol = np.append(inelasticol,float(spltline[offset]))
-
-		offset=offset+1
-		electroncurr = np.append(electroncurr,float(spltline[offset]))
-
-		offset=offset+1
-		ioncurr = np.append(ioncurr,float(spltline[offset]))
-
-
-	return(x,elecden,ionden,nden,potential,efield,electemp,jheating,elasticol,inelasticol,electroncurr,ioncurr)
+    return(x,elecden,ionden,nden,potential,efield,electemp,jheating,elasticol,inelasticol,electroncurr,ioncurr)
 #===================================================================
 
 fname=argv[1]
 
 (specnames,enum,nbgspecies,nions,nneut,gapd)=getspecinfo()
-
-print "nneut:",nneut
 
 (x,eden,iden,nden,pot,efield,etemp,ejheat,elcol,inelcol,electroncurr,ioncurr)=readfile(fname,enum,nbgspecies,nions,nneut,len(specnames))
 x=x/gapd
@@ -130,32 +104,24 @@ lt=3
 
 
 npoints=len(x)
-iondens=np.zeros((nions,npoints))
-ndens=np.zeros((nneut+nbgspecies,npoints))
-
-for i in range(npoints):
-	for j in range(nions):
-		iondens[j][i]=iden[i*nions+j]
-
-for i in range(npoints):
-	for j in range(nneut+nbgspecies):
-		ndens[j][i]=nden[i*(nneut+nbgspecies)+j]
 
 (fig,ax)=plt.subplots(m,n,figsize=(n*xlen,m*ylen))
 #fig.tight_layout()
 
 i=0
 j=0
+ax[i][j].set_title("Electron/ion densities")
 ax[i][j].plot(x,eden,'k*-',markevery=me,markeredgecolor='black',linewidth=lt,label="E")
 offset=nbgspecies+1
 for n in range(nions):
-	ax[i][j].plot(x,iondens[n],markevery=me+7,linewidth=lt,label=specnames[offset+n])
+    ax[i][j].plot(x,iden[:,n],markevery=me+7,linewidth=lt,label=specnames[offset+n])
 ax[i][j].set_ylabel("number density (#/m3)")
 lg=ax[i][j].legend(loc="best")
 lg.draw_frame(False)
 
 i=0
 j=1
+ax[i][j].set_title("Potential/Electric fields")
 ax[i][j].plot(x,pot,'r*-',markevery=me,markeredgecolor='red',linewidth=lt,label="Potential")
 ax[i][j].set_ylabel("Voltage (V)")
 ax_twin=ax[i][j].twinx()
@@ -168,6 +134,7 @@ lg.draw_frame(False)
 
 i=1
 j=0
+ax[i][j].set_title("Potential/Electron temperature")
 ax[i][j].plot(x,pot,'r*-',markevery=me,markeredgecolor='red',linewidth=lt,label="Potential")
 ax[i][j].set_ylabel("Voltage (V)")
 ax[i][j].set_xlabel("gap distance")
@@ -181,6 +148,7 @@ lg.draw_frame(False)
 
 i=1
 j=1
+ax[i][j].set_title("Electron source terms")
 ax[i][j].plot(x,ejheat,'r*-',markevery=me,markeredgecolor='red',linewidth=lt,label="Joule heating")
 ax[i][j].plot(x,elcol,'bo-',markevery=me,markeredgecolor='blue',linewidth=lt,label="Elastic collisions")
 ax[i][j].plot(x,inelcol,'gs-',markevery=me,markeredgecolor='green',linewidth=lt,label="Inelastic collisions")
@@ -191,6 +159,7 @@ lg.draw_frame(False)
 
 i=0
 j=2
+ax[i][j].set_title("Current densities")
 ax[i][j].plot(x,electroncurr,'r*-',markevery=me,markeredgecolor='red',linewidth=lt,label="electron current")
 ax[i][j].plot(x,ioncurr,'bo-',markevery=me,markeredgecolor='blue',linewidth=lt,label="Ion current")
 ax[i][j].plot(x,ioncurr+electroncurr,'ks-',markevery=me,markeredgecolor='black',linewidth=lt,label="Total current")
@@ -201,15 +170,15 @@ lg.draw_frame(False)
 
 i=1
 j=2
+ax[i][j].set_title("Neutral densities")
 if(nneut > 0):
-	offset=nbgspecies+1+nions
-	print nneut,offset
-	for n in range(nneut):
-		ax[i][j].plot(x,ndens[n+1],markevery=me+7,linewidth=lt,label=specnames[offset+n])
-	ax[i][j].set_ylabel("number density (#/m3)")
-	lg=ax[i][j].legend(loc="best")
-	lg.draw_frame(False)
-	print np.trapz(ndens[0],x)
+    offset=nbgspecies+1+nions
+    for n in range(nneut):
+        ax[i][j].plot(x,nden[:,n],markevery=me+7,linewidth=lt,label=specnames[offset+n])
+    ax[i][j].set_ylabel("number density (#/m3)")
+    lg=ax[i][j].legend(loc="best")
+    lg.draw_frame(False)
+    print(np.trapz(ndens[0],x))
 
 fig.tight_layout()
 #plt.savefig("plasmaparams.pdf")

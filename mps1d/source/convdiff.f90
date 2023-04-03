@@ -1,5 +1,6 @@
 module convdiff
 use vectorfunctions
+use solvergmres_module
 implicit none
 
 integer,parameter :: minsize=3
@@ -341,6 +342,15 @@ recursive subroutine dovcycle(X,b,timederivfactor,vel,dcoeff,reac,&
 	real*8 :: vel2h(n/2+1)
 	real*8 :: dcoeff2h(n/2+1)
 	real*8 :: reac2h(n/2+1)
+        real*8 :: Xmin(minsize)
+        real*8 :: AX(minsize)
+        logical :: success
+        logical :: printflag
+        real*8 :: initial_res
+
+        success = .false.
+        printflag = .false.
+
 
 	velh    = vel
 	dcoeffh = dcoeff
@@ -354,73 +364,89 @@ recursive subroutine dovcycle(X,b,timederivfactor,vel,dcoeff,reac,&
         vel2h    = ZERO
         dcoeff2h = ZERO
         reac2h   = ZERO
+        Xmin     = ZERO
 
-	if(n .le. minsize) then
-		call gauss_seidel_smoothing(resh,b,X,timederivfactor,velh,dcoeffh,reach,&
-				dirc_bc_flags,flux_bc_flags,dircvals,&
-				fluxvals,dx,dt,n,1000,NEARZERO)
-	else
+        if(n .le. minsize) then
+            !call gauss_seidel_smoothing(resh,b,X,timederivfactor,velh,dcoeffh,reach,&
+            !		dirc_bc_flags,flux_bc_flags,dircvals,&
+            !		fluxvals,dx,dt,n,10000,NEARZERO)
 
-		!initial smoothing
-		call gauss_seidel_smoothing(resh,b,X,timederivfactor,velh,dcoeffh,reach,&
-				dirc_bc_flags,flux_bc_flags,dircvals,&
-				fluxvals,dx,dt,n,1,NEARZERO)
+            call performgmres(b,Xmin,X,timederivfactor,&
+                velh,dcoeffh,reach,dirc_bc_flags,&
+                flux_bc_flags,dircvals,fluxvals,dx,dt,&
+                n,n,1,findAX,noprecond,&
+                1.d-12,success,printflag,initial_res)
 
-		!restriction of residual from fine to coarse grid
-         	call restriction(resh,res2h,n/2+1)
-         	
-		call restriction(reach,reac2h,n/2+1)
-         	call restriction(dcoeffh,dcoeff2h,n/2+1)
-         	call restriction(velh,vel2h,n/2+1)
+            AX = ZERO
 
-		call dovcycle(e2h,res2h,timederivfactor,vel2h,dcoeff2h,reac2h,&
-				dirc_bc_flags,flux_bc_flags,dircvals,&
-				fluxvals,TWO*dx,dt,n/2+1)
+            call  findAX(AX,X,timederivfactor,velh,dcoeffh,reach,dirc_bc_flags,&
+                flux_bc_flags,dircvals,fluxvals,dx,dt,n)
 
-		!prolong error from coarse to fine grid
-		call prolong(eh,e2h,n/2+1)
+            resh = b - AX 
 
-		!update
-		X(:) = X(:) + eh(:)
+        else
 
-		!post smooth
-		call gauss_seidel_smoothing(resh,b,X,timederivfactor,velh,dcoeffh,reach,&
-				dirc_bc_flags,flux_bc_flags,dircvals,&
-				fluxvals,dx,dt,n,1,NEARZERO)
-	endif
+            !initial smoothing
+            call gauss_seidel_smoothing(resh,b,X,timederivfactor,velh,dcoeffh,reach,&
+                dirc_bc_flags,flux_bc_flags,dircvals,&
+                fluxvals,dx,dt,n,2,NEARZERO)
 
-end subroutine dovcycle
-!===============================================================
-subroutine mgridprecond(MinvX,X,timederivfactor,vel,dcoeff,reac,dirc_bc_flags,&
-				flux_bc_flags,dircvals,fluxvals,&
-				dx,dt,n)
-	
-	integer, intent(in)    :: n
-	real*8, intent(inout)    :: MinvX(n)
-	real*8, intent(inout)  :: X(n)
-	
-	logical, intent(in) :: dirc_bc_flags(2),flux_bc_flags(2)
+            !restriction of residual from fine to coarse grid
+            call restriction(resh,res2h,n/2+1)
+
+            call restriction(reach,reac2h,n/2+1)
+            call restriction(dcoeffh,dcoeff2h,n/2+1)
+            call restriction(velh,vel2h,n/2+1)
+
+            call dovcycle(e2h,res2h,timederivfactor,vel2h,dcoeff2h,reac2h,&
+                dirc_bc_flags,flux_bc_flags,dircvals,&
+                fluxvals,TWO*dx,dt,n/2+1)
+
+            !prolong error from coarse to fine grid
+            call prolong(eh,e2h,n/2+1)
+
+            !update
+            X(:) = X(:) + eh(:)
+
+            !post smooth
+            call gauss_seidel_smoothing(resh,b,X,timederivfactor,velh,dcoeffh,reach,&
+                dirc_bc_flags,flux_bc_flags,dircvals,&
+                fluxvals,dx,dt,n,2,NEARZERO)
+
+        endif
+
+    end subroutine dovcycle
+    !===============================================================
+    subroutine mgridprecond(MinvX,X,timederivfactor,vel,dcoeff,reac,dirc_bc_flags,&
+            flux_bc_flags,dircvals,fluxvals,&
+            dx,dt,n)
+
+        integer, intent(in)    :: n
+        real*8, intent(inout)    :: MinvX(n)
+        real*8, intent(inout)  :: X(n)
+
+        logical, intent(in) :: dirc_bc_flags(2),flux_bc_flags(2)
         real*8, intent(in) :: dircvals(2),fluxvals(2)
         real*8,intent(in)  :: vel(n),dcoeff(n),reac(n)
         real*8,intent(in)  :: dx,dt
-	real*8,intent(in)  :: timederivfactor
-	
-	integer :: nvcycles,i
-	!real*8 :: AX(n),res(n)
-	!real*8 :: norm
-	!integer :: j
+        real*8,intent(in)  :: timederivfactor
 
-	!norm=0.d0
-	nvcycles=5
+        integer :: nvcycles,i
+        !real*8 :: AX(n),res(n)
+        !real*8 :: norm
+        !integer :: j
 
-	do i=1,nvcycles
-		call dovcycle(MinvX,X,timederivfactor,vel,dcoeff,reac,&
-		dirc_bc_flags,flux_bc_flags,dircvals,&
-				fluxvals,dx,dt,n)
-	enddo
-	
+        !norm=0.d0
+        nvcycles=1
 
-end subroutine mgridprecond
-!===============================================================
+        do i=1,nvcycles
+            call dovcycle(MinvX,X,timederivfactor,vel,dcoeff,reac,&
+                dirc_bc_flags,flux_bc_flags,dircvals,&
+                fluxvals,dx,dt,n)
+        enddo
+
+
+    end subroutine mgridprecond
+    !===============================================================
 
 end module convdiff
