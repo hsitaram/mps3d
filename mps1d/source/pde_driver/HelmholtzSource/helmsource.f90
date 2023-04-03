@@ -3,12 +3,12 @@ program generic_pde
     use solvergmres_module
     implicit none
 
-    integer, parameter :: np = 513
+    integer, parameter :: np = 4097
 
     real*8  :: xmin,xmax
-    real*8  :: initial_res,final_res
+    real*8  :: initial_res
     logical :: printflag
-    integer :: i,j
+    integer :: i
     logical :: dirc_bc_flags(2),flux_bc_flags(2)
     real*8  :: dircvals(2),fluxvals(2)
     real*8  :: timederivfactor
@@ -76,39 +76,6 @@ program generic_pde
     enddo
     !==================================================
     
-    !PDE being solved
-    !d2u/dx2 = 0
-    !exact solution x
-
-    !here c=0, k=1, r=0, s=0
-
-    !boundary conditions
-    !dirichlet u=0 at  x=0
-    !dirichlet u=1 at  x=1
-    !or
-    !flux in positive x direction f=(cu-kdu/dx)=-1 at x=1
-
-    !timederivfactor = ZERO
-    !dirc_bc_flags(1) = .true.
-    !dirc_bc_flags(2) = .true.
-    !flux_bc_flags(1) = .false.
-    !flux_bc_flags(2) = .false.
-
-    !dircvals(1) = ZERO
-    !dircvals(2) = ONE
-    !fluxvals(1) = ZERO
-    !fluxvals(2) = -ONE
-
-    !do i=1,np
-    !    x = xmin + (i-1)*dx
-    !    vel(i)    =  ZERO
-    !    dcoeff(i) =  ONE
-    !    reac(i)   =  ZERO
-    !    source(i) =   ZERO
-    !enddo
-    !==================================================
-    
-
     print *,"gauss seidel======================"   
     phi = ZERO
     phiold = phi
@@ -131,7 +98,7 @@ program generic_pde
     print *,"multigrid=========================="    
     phi = ZERO
     phiold   = phi
-    nvcycles = 30
+    nvcycles = 5
     mgrid_tol=1e-9
 
     call findrhs(b,phiold,timederivfactor,source,dirc_bc_flags, &

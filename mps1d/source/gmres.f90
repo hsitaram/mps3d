@@ -151,6 +151,33 @@ contains
 
     end subroutine triangularize
     !===================================================
+    subroutine printvec(vec,n)
+
+        integer, intent(in) :: n
+        real*8, intent(in) :: vec(n)
+        
+        integer :: i
+                
+        do i=1,n
+            write(*,'(F10.4)') vec(i)
+        enddo
+
+    end subroutine printvec
+    !===================================================
+    subroutine printmat(mat,m,n)
+        
+        integer, intent(in) :: m,n
+        real*8, intent(in) :: mat(m,n)
+        
+        integer :: i,j
+
+        do, i=1,m
+            write(*,'(100g15.4)') ( mat(i,j), j=1,n )
+        enddo
+
+
+    end subroutine printmat
+    !===================================================
     subroutine performgmres(b,x0,x,timederivfactor,vel,&
             dcoeff,reac,&
             dirc_bc_flags,flux_bc_flags,&
@@ -276,12 +303,20 @@ contains
                     dircvals,fluxvals,dx,dt,Hmat,kspvectors,findAX,precond,&
                     lucky,luckykspdim,nanflag)
 
+                !call printmat(kspvectors,n,maxkspdim+1)
+
                 if(nanflag .eqv. .true.) then
                     success=.false.
                     exit
                 endif
 
+                !print *,"before triangularize"
+                !call printmat(Hmat,maxkspdim+1,maxkspdim)
+                
                 call triangularize(Hmat,maxkspdim,cos_arr,sin_arr,beta_e1,kspdim,residnorm)
+                
+                !print *,"after triangularize"
+                !call printmat(Hmat,maxkspdim+1,maxkspdim)
 
                 if(printflag .eqv. .true.) print *,"normalized residnorm, kspdim:",residnorm/b_norm,kspdim
 
@@ -302,6 +337,8 @@ contains
             do j=1,optkspdim
                 x=x+y(j)*kspvectors(:,j)
             enddo
+
+            !print *,"y:",y
 
             if((residnorm/b_norm .le. eps) .or. (lucky .eqv. .true.) .or. (success .eqv. .false.)) then
                 if(printflag .eqv. .true.) print *,"after restart iteration:",i,"normalized residual norm < tol:",&

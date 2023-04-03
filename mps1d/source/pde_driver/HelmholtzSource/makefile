@@ -1,7 +1,7 @@
-SOURCEDIR = ..
+SOURCEDIR = ../..
 
 OBJFILES = ${SOURCEDIR}/fundconstants.o ${SOURCEDIR}/vectorfunctions.o ${SOURCEDIR}/gmres.o ${SOURCEDIR}/convdiff.o
-MAINFILE = generic_pde.f90
+MAINFILE = helmsource.f90
 
 COMPTYPE=GNU
 #COMPTYPE=INTEL

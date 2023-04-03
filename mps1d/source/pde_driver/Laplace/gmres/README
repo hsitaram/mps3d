@@ -1,0 +1,4 @@
+This test is to compare the octave gmres code from wikipedia to mine
+and seeing if we are getting the same solution and intermediate 
+hess matrices and error. So, to test, the number of ksp iterations is set to 2
+which does not result in a converged solution here.
