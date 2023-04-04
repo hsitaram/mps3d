@@ -389,7 +389,7 @@ recursive subroutine dovcycle(X,b,timederivfactor,vel,dcoeff,reac,&
             !initial smoothing
             call gauss_seidel_smoothing(resh,b,X,timederivfactor,velh,dcoeffh,reach,&
                 dirc_bc_flags,flux_bc_flags,dircvals,&
-                fluxvals,dx,dt,n,2,NEARZERO)
+                fluxvals,dx,dt,n,1,NEARZERO)
 
             !restriction of residual from fine to coarse grid
             call restriction(resh,res2h,n/2+1)
@@ -411,7 +411,7 @@ recursive subroutine dovcycle(X,b,timederivfactor,vel,dcoeff,reac,&
             !post smooth
             call gauss_seidel_smoothing(resh,b,X,timederivfactor,velh,dcoeffh,reach,&
                 dirc_bc_flags,flux_bc_flags,dircvals,&
-                fluxvals,dx,dt,n,2,NEARZERO)
+                fluxvals,dx,dt,n,1,NEARZERO)
 
         endif
 
