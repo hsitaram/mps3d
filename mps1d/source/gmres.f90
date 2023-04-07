@@ -312,6 +312,7 @@ contains
                 !call printmat(kspvectors,n,maxkspdim+1)
 
                 if(nanflag .eqv. .true.) then
+                    call abort()
                     success=.false.
                     exit
                 endif
