@@ -1,0 +1,7 @@
+*.[o]
+*.exe
+*.mod
+*.dat
+stderr
+stdout
+build*

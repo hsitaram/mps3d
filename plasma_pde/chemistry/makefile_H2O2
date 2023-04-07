@@ -1,0 +1,9 @@
+CHEMFILE=H2_O2_chem
+FILE=fundconstants.f90 ${CHEMFILE}.f90
+OBJFILE=${CHEMFILE}.o fundconstants.o
+
+CHEMDRIVER: 
+	gfortran -c ${FILE}
+	gfortran ${OBJFILE} chem_driver_H2O2.f90 -o chemdriver
+clean:
+	rm -rf *.o *.mod chemdriver

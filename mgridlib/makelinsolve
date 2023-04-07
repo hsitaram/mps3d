@@ -1,0 +1,5 @@
+potsolve:
+	gfortran -c -fbounds-check linearsolvers.f90
+	gfortran -fbounds-check linearsolvers.o linsolve_driver.f90  -o linsolve
+clean:
+	rm -rf *.o *.mod linsolve
