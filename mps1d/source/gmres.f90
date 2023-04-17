@@ -312,6 +312,10 @@ contains
                 !call printmat(kspvectors,n,maxkspdim+1)
 
                 if(nanflag .eqv. .true.) then
+<<<<<<< HEAD
+=======
+                    call abort()
+>>>>>>> mps3d_origin/main
                     success=.false.
                     exit
                 endif

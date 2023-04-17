@@ -824,12 +824,20 @@ end subroutine inelastic_colterm
 subroutine timestepping()
 
 	integer :: it,j,rescounter,nresiduals,fnum
+<<<<<<< HEAD
+=======
+        integer :: outputfilenum
+>>>>>>> mps3d_origin/main
 	real*8 :: time
 	logical :: printflag
 	real*8,allocatable :: residual(:)
 	real*8 :: user_spec_voltage,pulse_voltage
 	
 	fnum=13
+<<<<<<< HEAD
+=======
+        outputfilenum=0
+>>>>>>> mps3d_origin/main
 
 	nresiduals=1+1+1+no_of_ions+no_of_neutrals
 	allocate(residual(nresiduals))
@@ -853,7 +861,13 @@ subroutine timestepping()
 		
 		rescounter=1
 		if(mod(it,printfileit) .eq. 0) then
+<<<<<<< HEAD
 			call printfile(it)
+=======
+                        
+			call printfile(outputfilenum)
+                        outputfilenum=outputfilenum+1
+>>>>>>> mps3d_origin/main
 		endif
 		
 		if(mod(it,printit) .eq. 0) then
@@ -871,9 +885,19 @@ subroutine timestepping()
 
 			else if(prob_specific_params(3) .eq. 2) then
 			
+<<<<<<< HEAD
 			
 				pulse_voltage = gaussian_waveform(prob_specific_params(4),prob_specific_params(5),&
 								time,user_spec_voltage,prob_specific_params(6))
+=======
+				pulse_voltage = gaussian_waveform(prob_specific_params(4),prob_specific_params(5),&
+								time,user_spec_voltage,prob_specific_params(6))
+			
+                        else if(prob_specific_params(3) .eq. 3) then
+			
+				pulse_voltage = sinusoidal_waveform(prob_specific_params(4),prob_specific_params(5),&
+								prob_specific_params(6),time)
+>>>>>>> mps3d_origin/main
 				
 			endif
 
@@ -881,6 +905,10 @@ subroutine timestepping()
 			if(prob_specific_params(2) .eq. 2) voltage_R = pulse_voltage
 
 		endif
+<<<<<<< HEAD
+=======
+
+>>>>>>> mps3d_origin/main
 				
 		if(printflag .eqv. .true.) then
 			print *,"left and right voltages:",voltage_L,voltage_R
@@ -920,7 +948,11 @@ subroutine timestepping()
 
 	enddo
 
+<<<<<<< HEAD
 	call printfile(it)
+=======
+	call printfile(outputfilenum)
+>>>>>>> mps3d_origin/main
 
 	close(fnum)
 
@@ -940,7 +972,11 @@ subroutine printfile(it)
 
 	prodfptr=14
 	solnfptr=15
+<<<<<<< HEAD
 	write(itstr,'(I7.7)') it
+=======
+	write(itstr,'(I4.4)') it
+>>>>>>> mps3d_origin/main
 
 	solnfname="soln_"//trim(itstr)//".dat"
 	prodfname="prod_"//trim(itstr)//".dat"
@@ -1121,5 +1157,18 @@ function gaussian_waveform(peak_time,width_time,time,V0,minimum_val) result(V)
 	
 end function gaussian_waveform
 !=============================================================================
+<<<<<<< HEAD
+=======
+function sinusoidal_waveform(Vbias,Vampl,freq,time) result(V)
+
+	real*8, intent(in)  :: Vbias,Vampl,freq,time
+	real*8 :: V	
+	
+	!update voltage waveform
+	V = Vbias + Vampl*sin(2.d0*pi*freq*time)
+		
+end function sinusoidal_waveform
+!=============================================================================
+>>>>>>> mps3d_origin/main
 
 end module plasma_solver

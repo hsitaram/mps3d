@@ -1,0 +1,29 @@
+MGRIDLIBDIR = ../mgridlib
+
+SOLVERDIR = ../generic_pde
+
+MGRIDLIBFILES = ${MGRIDLIBDIR}/globalvars.o ${MGRIDLIBDIR}/vectorfunctions.o \
+		${MGRIDLIBDIR}/par_decompose.o ${MGRIDLIBDIR}/discretepde.o \
+		${MGRIDLIBDIR}/cartwrite.o ${MGRIDLIBDIR}/linearsolvers.o ${MGRIDLIBDIR}/gmres.o \
+		${MGRIDLIBDIR}/mgridsteps.o 
+
+SOLVERFILES   = ${SOLVERDIR}/inputs.o ${SOLVERDIR}/pdedefs.o ${SOLVERDIR}/solve_manager.o
+
+OBJFILES = globalvars.o vectorfunctions.o inputs.o par_decompose.o discretepde.o cartwrite.o \
+	   linearsolvers.o gmres.o mgridsteps.o pdedefs.o solve_manager.o
+
+LAPLACESOLVEFLAG=-DLAPLACE_SOLVE
+#LAPLACESOLVEFLAG=-fpp
+FORT = mpif90
+FFLAGS = -fbounds-check ${LAPLACESOLVEFLAG}
+
+%.o: %.f90
+	${FORT} -c ${FFLAGS} $< -o $@
+
+mgridsolve: ${MGRIDLIBFILES} ${SOLVERFILES}
+	mv ${MGRIDLIBDIR}/*.o .
+	mv ${SOLVERDIR}/*.o .
+	${FORT} ${FFLAGS} ${SOLVERDIR}/main.f90 ${OBJFILES} -o gpde.exe
+
+clean:
+	rm -rf ${MGRIDLIBDIR}/*.o ${SOLVERDIR}/*.o *.o *.mod gpde.exe
