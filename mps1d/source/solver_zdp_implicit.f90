@@ -34,10 +34,8 @@ module plasma_solver
       integer :: printit
       integer :: printfileit
 
-
       real*8, allocatable :: numden(:,:)
       real*8, allocatable :: ydot_i(:,:)
-	  real*8, allocatable :: rates_of_progress_i(:,:)
       real*8, allocatable :: phi(:)
       real*8, allocatable :: efield(:)
       real*8, allocatable :: Ee(:)
@@ -54,8 +52,6 @@ module plasma_solver
 
       real*8  :: restart_time
       integer :: restart_it
-
-	  real :: start, finish
 
       contains
 !=============================================================================
@@ -138,7 +134,7 @@ subroutine init()
 		read(inpfptr,*) temp,specinit(i)
 	enddo
 	
-	!problem specific params
+	!number densities
 	read(inpfptr,*) temp
 	read(inpfptr,*) prob_specific_params(:)
 
@@ -153,7 +149,6 @@ subroutine init()
 	
 	allocate(numden(np,nspecies))
     allocate(ydot_i(np,nspecies))
-	allocate(rates_of_progress_i(np,nreac))
 	allocate(phi(np))
 	allocate(efield(np))
 	allocate(Te(np))
@@ -322,6 +317,7 @@ subroutine ionsolve(ispecnum,printflag,residual)
 	real*8  :: specarray(nspecies)
 	real*8  :: specprod
 	logical :: success
+	real*8 :: ydot_j
 	
 	dcoeff=0.d0
 	vel=0.d0
@@ -348,10 +344,14 @@ subroutine ionsolve(ispecnum,printflag,residual)
 				Te(i)*Tescale,T_gas,P_gas)
       	 	
 
-!		call getspecproduction(ispecnum,Te(i)*Tescale,T_gas,&
-!				specarray,specprod,efield(i))
+		call getspecproduction(ispecnum,Te(i)*Tescale,T_gas,&
+				specarray,specprod,efield(i))
+		
+		ydot_j = 0.0
+		call zdp_getspecproduction(Te(i)*Tescale,T_gas,specarray,ispecnum,ydot_j)
+		source(i) = ydot_j / nscale
 
-        source(i) = ydot_i(i,ispecnum) / nscale
+!        source(i) = ydot_i(i,ispecnum) / nscale
 !		source(i) = specprod/nscale
 
       	enddo
@@ -422,6 +422,7 @@ subroutine neutralsolve(nspecnum,printflag,residual)
 	real*8  :: specarray(nspecies)
 	real*8  :: specprod,cbar1,cbar2
 	logical :: success
+	real*8 :: ydot_j
 	
 	dcoeff=0.d0
 	vel=0.d0
@@ -443,10 +444,14 @@ subroutine neutralsolve(nspecnum,printflag,residual)
 				Te(i)*Tescale,T_gas,P_gas)
 		
 
-!		call getspecproduction(nspecnum,Te(i)*Tescale,T_gas,&
-!				specarray,specprod,efield(i))
+		call getspecproduction(nspecnum,Te(i)*Tescale,T_gas,&
+				specarray,specprod,efield(i))
+		
+		ydot_j = 0.0
+		call zdp_getspecproduction(Te(i)*Tescale,T_gas,specarray,nspecnum,ydot_j)
+		source(i) = ydot_j / nscale
 
-        source(i) = ydot_i(i,nspecnum) / nscale
+!        source(i) = ydot_i(i,nspecnum) / nscale
 !        write(*,*) "x = ", (i-1)*dx," source = ", specprod, ", zdp source = ",&
 !                ydot_i(i,nspecnum)
 !		source(i) = specprod/nscale
@@ -501,6 +506,7 @@ subroutine electronsolve(printflag,residual)
 	real*8 :: iflux
 	real*8 :: m_e
 	logical :: success
+	real*8 :: ydot_j
 
 	dcoeff=0.d0
 	vel=0.d0
@@ -531,10 +537,14 @@ subroutine electronsolve(printflag,residual)
 		source(i) =   0.d0
 		
 
-!		call getspecproduction(especnum,Te(i)*Tescale,T_gas,&
-!				specarray,specprod,efield(i))
+		call getspecproduction(especnum,Te(i)*Tescale,T_gas,&
+				specarray,specprod,efield(i))
 
-        source(i) = ydot_i(i,especnum) / nscale
+		ydot_j = 0.0
+		call zdp_getspecproduction(Te(i)*Tescale,T_gas,specarray,especnum,ydot_j)
+		write(*,*) "ydot_j_electron = ", ydot_j, " specprod = ", specprod
+		source(i) = ydot_j / nscale
+!        source(i) = ydot_i(i,especnum) / nscale
 !		 source(i)   =   source(i) + specprod/nscale  
       	enddo
 
@@ -640,10 +650,7 @@ subroutine elecenergysolve(printflag,residual)
 	
 	call jouleheatingterm(jheating)
 	call elastic_colterm(elastic_col)
-	call cpu_time(start)
 	call inelastic_colterm(inelastic_col)
-	call cpu_time(finish)
-	!write(*,*) "Time for inelastic_colterm = ", finish - start
 
 	timederivfactor=1.d0
 	do i=1,np
@@ -824,21 +831,16 @@ subroutine inelastic_colterm(inelastic_col)
 
 	do i=1,np
 	
-      	do j=1,nspecies
+      	  	do j=1,nspecies
   			specarray(j)=numden(i,j)*nscale
-	 	enddo	
-
-		rates_of_progress_i(i,:) = zdp_getratesofprogress(Te(i)*Tescale,T_gas,nscale*numden(i,:))
- 
-	  	!call getelectroninelasticterm(Te(i)*Tescale,T_gas,&
-		!	  specarray,inelterm,efield(i))
-
-	  	call zdp_getelectroninelasticterm(Te(i)*Tescale,T_gas,&
-			  specarray,inelterm,rates_of_progress_i(i,:))
+	 	 enddo	
+	  
+	  	call getelectroninelasticterm(Te(i)*Tescale,T_gas,&
+			  specarray,inelterm,efield(i))
 
 	  	inelastic_col(i) = inelterm/nscale
 	  
-	enddo 
+	  enddo 
 
 end subroutine inelastic_colterm
 !=============================================================================
@@ -904,20 +906,28 @@ subroutine timestepping()
 				
 		if(printflag .eqv. .true.) then
 			print *,"left and right voltages:",voltage_L,voltage_R
-		endif		
-
-        ! TST - Call zdp to calculate all species source terms and rxn progress rates
-        do i=1,np
-            call zdp_getspecproduction(Te(i)*Tescale,T_gas,nscale*numden(i,:))
-
-            ydot_i(i,:) = ydot
-        enddo 
+		endif
 
 		call potentialsolve(printflag,residual(rescounter))
 		rescounter=rescounter+1
 		
 		call elecenergysolve(printflag,residual(rescounter))
-		rescounter=rescounter+1       
+		rescounter=rescounter+1
+		
+!        ! TST - Call zdp to calculate all species source terms
+!        do i=1,np
+!            call zdp_getspecproduction(Te(i)*Tescale,T_gas,nscale*numden(i,:))
+!
+!            ydot_i(i,:) = ydot
+!           !write(*,*) "time = ", time
+!           !write(*,*) "x = ", (i-1)*dx, " ydot = ", ydot
+!
+!           do j=1,nspecies
+!               call getspecproduction(j,Te(i)*Tescale,T_gas,nscale*numden(i,:),&
+!               specprod,efield(i))
+!               !write(*,*) "x = ", (i-1)*dx, ", specprod[",j,"] = ", specprod
+!           enddo
+!        enddo        
 
 		call electronsolve(printflag,residual(rescounter))
 		rescounter=rescounter+1
@@ -977,8 +987,6 @@ subroutine printfile(it)
 	call jouleheatingterm(jheating)
 	call elastic_colterm(elastic_col)
 	call inelastic_colterm(inelastic_col)
-
-	
 	call findconductioncurrent(icurr,ecurr)
       
 	do i=1,np
@@ -1001,28 +1009,24 @@ subroutine printfile(it)
 			specarray(j)=numden(i,j)*nscale
 		enddo
 
-!		call getspecproduction(especnum,Te(i)*Tescale,T_gas,&
-!				specarray,specprod,efield(i))
-	
-!      	write(prodfptr,'(E20.10,E20.10)',advance='no') (i-1)*dx,specprod
-      	write(prodfptr,'(E20.10,E20.10)',advance='no') (i-1)*dx,ydot_i(i,especnum)
+		call getspecproduction(especnum,Te(i)*Tescale,T_gas,&
+				specarray,specprod,efield(i))
+
+      		write(prodfptr,'(E20.10,E20.10)',advance='no') (i-1)*dx,specprod
 
 		do j=ionspecmin,ionspecmax
 
-!			call getspecproduction(j,Te(i)*Tescale,T_gas,&
-!				specarray,specprod,efield(i))
-!      			write(prodfptr,'(E20.10)',advance='no') specprod
-      			write(prodfptr,'(E20.10)',advance='no') ydot_i(i,j)
+			call getspecproduction(j,Te(i)*Tescale,T_gas,&
+				specarray,specprod,efield(i))
+      			write(prodfptr,'(E20.10)',advance='no') specprod
 
 		enddo
 		
 		do j=neutralspecmin,neutralspecmax
 			
-!			call getspecproduction(j,Te(i)*Tescale,T_gas,&
-!				specarray,specprod,efield(i))
-!      			write(prodfptr,'(E20.10)',advance='no') specprod
-      			write(prodfptr,'(E20.10)',advance='no') ydot_i(i,j)
-
+			call getspecproduction(j,Te(i)*Tescale,T_gas,&
+				specarray,specprod,efield(i))
+      			write(prodfptr,'(E20.10)',advance='no') specprod
 		enddo
       		
 		write(prodfptr,'(A)',advance='yes')
@@ -1064,7 +1068,7 @@ subroutine findconductioncurrent(ioncurrent,electroncurrent)
 
 		mu_e      =   getspecmobility(especnum,specarray,efield(i),&
 				Te(i)*Tescale,T_gas,P_gas)
-		D_e       =   getspecdcoeff (especnum,specarray,efield(i),&
+		D_e       =   getspecdcoeff  (especnum,specarray,efield(i),&
 				Te(i)*Tescale,T_gas,P_gas)
 		
 		if(i .eq. 1) then
@@ -1116,7 +1120,6 @@ function trapz_waveform(rise_time,flat_time,fall_time,time,V0) result(V)
 	real*8, intent(in)  :: rise_time,flat_time,fall_time
 	real*8, intent(in)  :: time,V0
 	real*8 :: V	
-	
 	
 	real*8 :: t1,t2,t3
 	

@@ -871,6 +871,7 @@ subroutine timestepping()
 
 			else if(prob_specific_params(3) .eq. 2) then
 			
+			
 				pulse_voltage = gaussian_waveform(prob_specific_params(4),prob_specific_params(5),&
 								time,user_spec_voltage,prob_specific_params(6))
 				
