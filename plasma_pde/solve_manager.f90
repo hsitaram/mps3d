@@ -127,7 +127,7 @@ module solve_manager
 
 	      !potential and electron temperature
 	      read(fnum,*) temp,pot_init
-	      read(fnum,*),temp,electemp_init
+	      read(fnum,*) temp,electemp_init
 	      !=====================================================
 
 

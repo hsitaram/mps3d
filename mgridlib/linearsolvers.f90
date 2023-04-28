@@ -1,104 +1,104 @@
 module linearsolvers
-      implicit none
-	     real*8, parameter  :: NEARZERO   = 0.000001
-      contains
+    implicit none
+    real*8, parameter  :: NEARZERO   = 0.000001
+contains
 
-!================================================================================
-	subroutine sparse_directsolve(mat,b,n,x,success)
+    !================================================================================
+    subroutine sparse_directsolve(mat,b,n,x,success)
 
-		!can be written better to use column matrix elements
-		!rather than rows.
+        !can be written better to use column matrix elements
+        !rather than rows.
 
-      		integer, intent(in)    :: n
-	     	real*8, intent(inout)  :: mat(n,n)
-		real*8, intent(inout)  :: b(n)
-		real*8, intent(out)    :: x(n)
-		logical,intent(out)    :: success
+        integer, intent(in)    :: n
+        real*8, intent(inout)  :: mat(n,n)
+        real*8, intent(inout)  :: b(n)
+        real*8, intent(out)    :: x(n)
+        logical,intent(out)    :: success
 
-		integer :: i,j,k
-		real*8 :: fac
-		real*8 :: pivot_temp(n)
-		real*8 :: bpivot_temp
-		real*8 :: diag,sumoffdiag
+        integer :: i,j,k
+        real*8 :: fac
+        real*8 :: pivot_temp(n)
+        real*8 :: bpivot_temp
+        real*8 :: diag,sumoffdiag
 
-		logical :: nonzeroexists
+        logical :: nonzeroexists
 
-		success=.false.
+        success=.false.
 
-		!loop over diagonal values
-		do i=1,n-1
+        !loop over diagonal values
+        do i=1,n-1
 
-			success=.true.
+            success=.true.
 
-			if(abs(mat(i,i)) .lt. NEARZERO) then
+            if(abs(mat(i,i)) .lt. NEARZERO) then
 
-				nonzeroexists=.false.
-				do j=i+1,n
+                nonzeroexists=.false.
+                do j=i+1,n
 
-					if(abs(mat(j,i)) .gt. NEARZERO) then
-						nonzeroexists=.true.
-						exit
-					endif
+                    if(abs(mat(j,i)) .gt. NEARZERO) then
+                        nonzeroexists=.true.
+                        exit
+                    endif
 
-				enddo
+                enddo
 
-				if(nonzeroexists .eqv. .true.) then
-					
-					pivot_temp = mat(i,:)
-					mat(i,:)   = mat(j,:)
-					mat(j,:)   = pivot_temp
+                if(nonzeroexists .eqv. .true.) then
 
-					bpivot_temp = b(i)
-					b(i)        = b(j)
-					b(j)        = bpivot_temp
-				else
-					!matrix determinant is 0
-					success=.false.
-					exit
-				endif
+                    pivot_temp = mat(i,:)
+                    mat(i,:)   = mat(j,:)
+                    mat(j,:)   = pivot_temp
 
-			endif
+                    bpivot_temp = b(i)
+                    b(i)        = b(j)
+                    b(j)        = bpivot_temp
+                else
+                    !matrix determinant is 0
+                    success=.false.
+                    exit
+                endif
 
-			do j=i+1,n
-				
-				if(abs(mat(j,i)) .gt. NEARZERO) then
+            endif
 
-					fac = mat(j,i)/mat(i,i)
-						
-					do k=1,n
-						if((abs(mat(j,k)) .gt. NEARZERO) .or. (abs(mat(i,k)) .gt. NEARZERO)) then
-							mat(j,k)=mat(j,k)-fac*mat(i,k)
-						endif
-					enddo	
-					
-					b(j)=b(j) - fac*b(i)
-				endif
-			enddo
-		enddo	
+            do j=i+1,n
 
-		if(n .eq. 1) then
-			success=.true.
-		endif
-		!solve for x
-		if(success .eqv. .true.) then
+                if(abs(mat(j,i)) .gt. NEARZERO) then
 
-			do i=n,1,-1
-				
-				diag = mat(i,i)
-				sumoffdiag = 0.d0
+                    fac = mat(j,i)/mat(i,i)
 
-				do j=i+1,n
-					sumoffdiag = sumoffdiag + mat(i,j)*x(j)
-				enddo
+                    do k=1,n
+                        if((abs(mat(j,k)) .gt. NEARZERO) .or. (abs(mat(i,k)) .gt. NEARZERO)) then
+                            mat(j,k)=mat(j,k)-fac*mat(i,k)
+                        endif
+                    enddo	
 
-				x(i) = (b(i)-sumoffdiag)/diag
+                    b(j)=b(j) - fac*b(i)
+                endif
+            enddo
+        enddo	
 
-			enddo
+        if(n .eq. 1) then
+            success=.true.
+        endif
+        !solve for x
+        if(success .eqv. .true.) then
 
-		endif
-				
+            do i=n,1,-1
 
-	end subroutine sparse_directsolve
-!================================================================================
-      
+                diag = mat(i,i)
+                sumoffdiag = 0.d0
+
+                do j=i+1,n
+                    sumoffdiag = sumoffdiag + mat(i,j)*x(j)
+                enddo
+
+                x(i) = (b(i)-sumoffdiag)/diag
+
+            enddo
+
+        endif
+
+
+    end subroutine sparse_directsolve
+    !================================================================================
+
 end module linearsolvers

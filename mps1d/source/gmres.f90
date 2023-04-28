@@ -120,7 +120,7 @@ contains
         real*8,intent(inout) :: Hessmat(maxkspdim+1,maxkspdim)
         real*8,intent(inout) :: cos_arr(maxkspdim)
         real*8,intent(inout) :: sin_arr(maxkspdim)
-        real*8,intent(inout) :: beta_e1(maxkspdim)
+        real*8,intent(inout) :: beta_e1(maxkspdim+1)
         real*8,intent(out)   :: error
 
         real*8 :: temp, cosine, sine
