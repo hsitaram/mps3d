@@ -1,103 +1,103 @@
 module pdedefs
 
-      use globalvars
-      use mgridsteps
+    use globalvars
+    use mgridsteps
 
-      implicit none
+    implicit none
 
-      real*8, allocatable :: pdesoln(:,:,:)
-      character(LEN=20)   :: pdescalarname
-      
-      real*8, allocatable, private    :: dcoeff(:,:,:)
-      real*8, allocatable, private    :: vel(:,:,:,:)
-      real*8, allocatable, private    :: source(:,:,:)
-      real*8, allocatable, private    :: reac(:,:,:)
-      character(LEN=4),private        :: pde_bc_codes(NFACES)
-      type(boundarycondition),private :: pde_bcvals
+    real*8, allocatable :: pdesoln(:,:,:)
+    character(LEN=20)   :: pdescalarname
 
-      logical,private :: timederivflag
+    real*8, allocatable, private    :: dcoeff(:,:,:)
+    real*8, allocatable, private    :: vel(:,:,:,:)
+    real*8, allocatable, private    :: source(:,:,:)
+    real*8, allocatable, private    :: reac(:,:,:)
+    character(LEN=4),private        :: pde_bc_codes(NFACES)
+    type(boundarycondition),private :: pde_bcvals
 
-      contains
-!========================================================================
-	subroutine pde_initialize(bc_codes,bc_params)
+    logical,private :: timederivflag
 
-	      character(LEN=*)  :: bc_codes(NFACES)
-	      real*8,intent(in) :: bc_params(NFACES)
-	      integer :: i
-	      
-	      allocate(pdesoln(g_lx+2*g_nglayers,&
-			       g_ly+2*g_nglayers,&
-			       g_lz+2*g_nglayers))
-	      
-	       allocate(vel(g_lx+2*g_nglayers,&
-		            g_ly+2*g_nglayers,&
-			    g_lz+2*g_nglayers,NDIM))
+contains
+    !========================================================================
+    subroutine pde_initialize(bc_codes,bc_params)
 
-	      allocate(dcoeff(g_lx+2*g_nglayers,&
-			      g_ly+2*g_nglayers,&
-			      g_lz+2*g_nglayers))
-	      
-	      allocate(reac(g_lx+2*g_nglayers,&
-			    g_ly+2*g_nglayers,&
-			    g_lz+2*g_nglayers))
+        character(LEN=*)  :: bc_codes(NFACES)
+        real*8,intent(in) :: bc_params(NFACES)
+        integer :: i
 
-	      allocate(source(g_lx+2*g_nglayers,&
-			      g_ly+2*g_nglayers,&
-			      g_lz+2*g_nglayers))
+        allocate(pdesoln(g_lx+2*g_nglayers,&
+            g_ly+2*g_nglayers,&
+            g_lz+2*g_nglayers))
 
+        allocate(vel(g_lx+2*g_nglayers,&
+            g_ly+2*g_nglayers,&
+            g_lz+2*g_nglayers,NDIM))
 
-	      pdesoln = ZERO
-	      vel     = ZERO
-	      dcoeff  = ZERO
-	      reac    = ZERO
-	      source  = ZERO
+        allocate(dcoeff(g_lx+2*g_nglayers,&
+            g_ly+2*g_nglayers,&
+            g_lz+2*g_nglayers))
 
-	      !original	
-#ifndef LAPLACE_SOLVE
-	      timederivflag = .true.
-#else
-	      timederivflag = .false.
-#endif
+        allocate(reac(g_lx+2*g_nglayers,&
+            g_ly+2*g_nglayers,&
+            g_lz+2*g_nglayers))
 
-	      call pde_init()
-	      call pde_update_bcs(bc_codes,bc_params)
-
-	end subroutine pde_initialize
-!=========================================================================
-      subroutine pde_init()
-		
-		real*8  :: x,y,z
-	        integer :: i,j,k
-
-		pdescalarname="Phi"
-		pdescalarname=trim(pdescalarname)
-
-		pdesoln=ZERO
-
-		do k=2,g_lz+1
-			do j=2,g_ly+1
-				do i=2,g_lx+1
-					
-					x = g_offx + (i-2)*g_dx + HALF*g_dx
-					y = g_offy + (j-2)*g_dy + HALF*g_dy
-					z = g_offz + (k-2)*g_dz + HALF*g_dz
-					
-					!g_solnvars(i,j,k,1) = x**2+y**2+z**2
-#ifndef LAPLACE_SOLVE
-					pdesoln(i,j,k) = 0.5*(x**2-x)
-#else
-					pdesoln(i,j,k) = 0.5*(x**2-x)
-					!pdesoln(i,j,k) = 10.d0
-#endif
-
-				enddo
-			enddo
-		enddo
+        allocate(source(g_lx+2*g_nglayers,&
+            g_ly+2*g_nglayers,&
+            g_lz+2*g_nglayers))
 
 
+        pdesoln = ZERO
+        vel     = ZERO
+        dcoeff  = ZERO
+        reac    = ZERO
+        source  = ZERO
 
-      end subroutine pde_init
-!=================================================================
+        !original	
+        #ifndef LAPLACE_SOLVE
+             timederivflag = .true.
+        #else
+             timederivflag = .false.
+        #endif
+
+        call pde_init()
+        call pde_update_bcs(bc_codes,bc_params)
+
+    end subroutine pde_initialize
+    !=========================================================================
+    subroutine pde_init()
+
+        real*8  :: x,y,z
+        integer :: i,j,k
+
+        pdescalarname="Phi"
+        pdescalarname=trim(pdescalarname)
+
+        pdesoln=ZERO
+
+        do k=2,g_lz+1
+            do j=2,g_ly+1
+                do i=2,g_lx+1
+
+                    x = g_offx + (i-2)*g_dx + HALF*g_dx
+                    y = g_offy + (j-2)*g_dy + HALF*g_dy
+                    z = g_offz + (k-2)*g_dz + HALF*g_dz
+
+                    !g_solnvars(i,j,k,1) = x**2+y**2+z**2
+                    #ifndef LAPLACE_SOLVE
+                    pdesoln(i,j,k) = 0.5*(x**2-x)
+                    #else
+                    pdesoln(i,j,k) = 0.5*(x**2-x)
+                    !pdesoln(i,j,k) = 10.d0
+                    #endif
+
+                enddo
+            enddo
+        enddo
+
+
+
+    end subroutine pde_init
+    !=================================================================
       subroutine pde_update_bcs(bc_codes,bc_params)
 
 		character(LEN=*)  :: bc_codes(NFACES)
