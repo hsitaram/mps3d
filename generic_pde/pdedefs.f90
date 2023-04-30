@@ -52,12 +52,11 @@ contains
         reac    = ZERO
         source  = ZERO
 
-        !original	
-        #ifndef LAPLACE_SOLVE
-             timederivflag = .true.
-        #else
-             timederivflag = .false.
-        #endif
+#ifdef LAPLACE_SOLVE
+        timederivflag = .false.
+#else
+        timederivflag = .true.
+#endif
 
         call pde_init()
         call pde_update_bcs(bc_codes,bc_params)

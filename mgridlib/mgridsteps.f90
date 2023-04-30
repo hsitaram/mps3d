@@ -215,7 +215,8 @@ contains
 
     end subroutine prolongation1
     !=============================================================================================================================
-    subroutine bottomsolve(solnvar,timederivflag,dt,lx,ly,lz,vel,dcoeff,reac,source,bc_codes,serial_bcvals,&
+    subroutine bottomsolve(solnvar,timederivflag,dt,lx,ly,lz,vel,&
+            dcoeff,reac,source,bc_codes,serial_bcvals,&
             applybcflag,mgridsterm,resnorm)
 
         !need to obtain serial_bcvals
@@ -349,6 +350,8 @@ contains
             call find_bvec(serialsoln,dt,nx,ny,nz,serial_mgridsterm,serial_vel,serial_dcoeff,serial_source,&
                 bc_codes,serial_bcvals,applybcflag,b,&
                 lrank,rrank,brank,trank,krank,frank,serial_llenx,serial_lleny,serial_llenz)
+
+            print *,"b:",b
 
             call performgmres(b,serialsoln0,serialsoln,timederivflag,dt,nx,ny,nz,serial_vel,serial_dcoeff,&
                 serial_reac,bc_codes,serial_bcvals,&
