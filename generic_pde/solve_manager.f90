@@ -55,7 +55,7 @@ contains
         t=ZERO
         call writeoutputfile('output0')
 
-        do while(t .le. tfinal)
+        do while(t .lt. tfinal)
 
             call pde_solve(dt)
             t=t+dt

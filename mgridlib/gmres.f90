@@ -111,7 +111,7 @@ contains
             kspvecs(:,:,:,j+1)=wj(:,:,:)/Hmat(j+1,j)
 
         else if(isit_nan(Hmat(j+1,j)) .eqv. .false.) then
-            print *,"Hmat:",Hmat(j+1,j)
+            !print *,"Hmat:",Hmat(j+1,j)
             lucky=.true.
             luckykspdim=j;
         else
@@ -249,7 +249,11 @@ contains
         real*8                 :: Minvr(-g_nglayers+1:lx+g_nglayers,&
             -g_nglayers+1:ly+g_nglayers,&
             -g_nglayers+1:lz+g_nglayers)
-
+        
+        real*8                 :: b_with_ghst(-g_nglayers+1:lx+g_nglayers,&
+            -g_nglayers+1:ly+g_nglayers,&
+            -g_nglayers+1:lz+g_nglayers)
+        
         real*8                 :: Minvb(-g_nglayers+1:lx+g_nglayers,&
             -g_nglayers+1:ly+g_nglayers,&
             -g_nglayers+1:lz+g_nglayers)
@@ -299,12 +303,15 @@ contains
         n           = lx*ly*lz
         n_with_ghst = (lx+2*g_nglayers)*(ly+2*g_nglayers)*(lz+2*g_nglayers)
 
-
         call findnorm(initial_res,r0,n_with_ghst)
 
         lucky      = .false.
         nanflag    = .false.
         success    = .true.
+
+        b_with_ghst = ZERO
+        b_with_ghst(1:lx,1:ly,1:lz) = b(1:lx,1:ly,1:lz)
+
         do i=1,nrestarts
 
             Hmat       = ZERO
@@ -321,7 +328,7 @@ contains
             beta_e1    = ZERO
             Minvb      = ZERO
 
-            call precond(Minvb,b,timederivflag,dt,lx,ly,lz,vel,&
+            call precond(Minvb,b_with_ghst,timederivflag,dt,lx,ly,lz,vel,&
                 dcoeff,reac,bc_codes,bcvals,&
                 lrank,rrank,brank,trank,krank,frank,&
                 llenx,lleny,llenz,1)
@@ -385,6 +392,12 @@ contains
                     llenx,lleny,llenz,Hmat,&
                     kspvectors,findAX,precond,&
                     lucky,luckykspdim,nanflag)
+                
+                if(nanflag .eqv. .true.) then
+                    success=.false.
+                    call abort()
+                    exit
+                endif
 
                 call triangularize(Hmat,maxkspdim,cos_arr,sin_arr,beta_e1,kspdim,residnorm)
 
@@ -406,8 +419,6 @@ contains
                     residnorm/b_norm,tol
                 exit
             endif
-
-
 
         enddo
 

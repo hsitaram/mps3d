@@ -302,9 +302,7 @@ contains
         ny = ly*g_py
         nz = lz*g_pz
 
-        itmax=20*nx*ny*nz
-        !itmax=835
-        err_tol=ERRTOLR*0.01
+        err_tol=ERRTOLR*0.0001
 
         serialsoln    = ZERO
         res           = ZERO
@@ -342,8 +340,6 @@ contains
             err_achieved=.false.
             serialsoln0 = serialsoln
             maxkspdim = nx*ny*nz
-            !if(maxkspdim .lt. 2) maxkspdim=6
-            !if(maxkspdim .gt. 10) maxkspdim=10
             nrestarts = 1
             gmresprintflag = .false.
 
@@ -351,15 +347,12 @@ contains
                 bc_codes,serial_bcvals,applybcflag,b,&
                 lrank,rrank,brank,trank,krank,frank,serial_llenx,serial_lleny,serial_llenz)
 
-            print *,"b:",b
-
             call performgmres(b,serialsoln0,serialsoln,timederivflag,dt,nx,ny,nz,serial_vel,serial_dcoeff,&
                 serial_reac,bc_codes,serial_bcvals,&
                 lrank,rrank,brank,trank,krank,frank,&
                 serial_llenx,serial_lleny,serial_llenz,&
                 maxkspdim,nrestarts,find_AX,&
                 gseidel_precond,err_tol,err_achieved,gmresprintflag,initial_res_gmres,resnorm)
-
 
             if(err_achieved .eqv. .false.) then
                 print *,"hit max iterations",itmax,initial_res_gmres,resnorm
@@ -548,7 +541,8 @@ contains
             !need to find restricted boundary values (may not be necessary!)
             call restrict_boundary(bcvals,lx,ly,lz,bcvals_c)	
 
-            call find_AX(restrictsolnold,timederivflag,dt,lx/2,ly/2,lz/2,vel_c,dcoeff_c,reac_c,bc_codes,bcvals,&
+            call find_AX(restrictsolnold,timederivflag,dt,lx/2,ly/2,lz/2,&
+                vel_c,dcoeff_c,reac_c,bc_codes,bcvals,&
                 AX,dummy1,dummy2,&
                 g_lrank,g_rrank,g_brank,g_trank,g_krank,&
                 g_frank,g_llenx,g_lleny,g_llenz)
