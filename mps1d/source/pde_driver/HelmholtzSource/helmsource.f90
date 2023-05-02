@@ -98,8 +98,8 @@ program generic_pde
     print *,"multigrid=========================="    
     phi = ZERO
     phiold   = phi
-    nvcycles = 5
-    mgrid_tol=1e-9
+    nvcycles = 40
+    mgrid_tol=1e-25
 
     call findrhs(b,phiold,timederivfactor,source,dirc_bc_flags, &
         flux_bc_flags,dircvals,fluxvals,dx,dt,np)
