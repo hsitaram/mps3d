@@ -295,7 +295,7 @@ contains
 
         MinvX = ZERO		
         
-        if(lx*ly*lz==1) then
+        if(lx*ly*lz .eq. 1) then
 
             call find_AX(MinvX,timederivflag,dt,lx,ly,lz,vel,dcoeff,reac,bc_codes,bcvals,&
                 AX,diag,offdiag,lrank,rrank,brank,trank,krank,frank,llenx,lleny,llenz)

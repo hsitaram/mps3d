@@ -14,6 +14,9 @@ module solve_manager
     real*8, private :: solver_bcparams(NFACES)
     real*8, private :: bcparams(NFACES)
     integer,private :: solve_nscalars
+    integer :: laplsolveflag
+    integer :: nvcycles
+    real*8  :: dt,tfinal
 
 contains
     !===================================================================================
@@ -21,11 +24,13 @@ contains
 
 
         call readinputfile("INPUTS",solver_bc_codes,solver_bcparams)
+        call readsolverinpfile("SOLVER")
         call domaindecompose()
 
         num_eq = 1
 
-        call pde_initialize(solver_bc_codes,solver_bcparams)
+        call pde_initialize(laplsolveflag,nvcycles,&
+            solver_bc_codes,solver_bcparams)
 
         allocate(all_solnvars(g_lx+2*g_nglayers,&
             g_ly+2*g_nglayers,&
@@ -36,6 +41,28 @@ contains
 
     end subroutine solversetup
     !===================================================================================
+    subroutine readsolverinpfile(solverfilename)
+
+        integer :: fnum
+        character(LEN=*), intent(in) :: solverfilename
+        character(LEN=MAXSTRSIZE) :: temp
+
+        fnum=14
+
+        open(unit=fnum,file=solverfilename)
+        read(fnum,*) temp
+        read(fnum,*) temp
+        read(fnum,*) temp
+
+        read(fnum,*) temp,laplsolveflag
+        read(fnum,*) temp,dt
+        read(fnum,*) temp,tfinal
+        read(fnum,*) temp,nvcycles
+
+        close(fnum)
+
+    end subroutine readsolverinpfile
+    !============================================================
     subroutine writeoutputfile(fname)
 
         character(LEN=*),intent(in) :: fname
@@ -47,9 +74,8 @@ contains
 
     end subroutine writeoutputfile
     !===================================================================================
-    subroutine timestepping(dt,tfinal)
+    subroutine timestepping()
 
-        real*8, intent(in) :: tfinal,dt
         real*8 :: t
 
         t=ZERO

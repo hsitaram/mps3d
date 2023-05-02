@@ -8,7 +8,7 @@ program mgrid
 	call MPI_Init(ierr)
 	call solversetup()
 
-	call timestepping(0.1d0,0.1d0)
+	call timestepping()
 	call MPI_Finalize(ierr)
 
 end program mgrid

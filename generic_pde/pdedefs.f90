@@ -15,15 +15,23 @@ module pdedefs
     character(LEN=4),private        :: pde_bc_codes(NFACES)
     type(boundarycondition),private :: pde_bcvals
 
+    integer :: pde_laplsolver,pde_nvcycles
+
     logical,private :: timederivflag
 
 contains
     !========================================================================
-    subroutine pde_initialize(bc_codes,bc_params)
+    subroutine pde_initialize(laplsolveflag,nvcycles,&
+            bc_codes,bc_params)
 
+        integer, intent(in) :: laplsolveflag
+        integer, intent(in) :: nvcycles
         character(LEN=*)  :: bc_codes(NFACES)
         real*8,intent(in) :: bc_params(NFACES)
         integer :: i
+
+        pde_laplsolver = laplsolveflag
+        pde_nvcycles = nvcycles
 
         allocate(pdesoln(g_lx+2*g_nglayers,&
             g_ly+2*g_nglayers,&
@@ -52,7 +60,10 @@ contains
         reac    = ZERO
         source  = ZERO
 
-        timederivflag = .false.
+        timederivflag = .true.
+        if(laplsolveflag .eq. 1) then
+            timederivflag = .false.
+        endif
 
         call pde_init()
         call pde_update_bcs(bc_codes,bc_params)
@@ -77,9 +88,8 @@ contains
                     y = g_offy + (j-2)*g_dy + HALF*g_dy
                     z = g_offz + (k-2)*g_dz + HALF*g_dz
 
-                    !g_solnvars(i,j,k,1) = x**2+y**2+z**2
                     pdesoln(i,j,k) = 0.5*(x**2-x)
-                    !pdesoln(i,j,k) = 10.d0
+                    !pdesoln(i,j,k) = 0.d0
 
                 enddo
             enddo
@@ -244,7 +254,18 @@ contains
                     x = g_offx + (i-2)*g_dx + HALF*g_dx
                     y = g_offy + (j-2)*g_dy + HALF*g_dy
                     z = g_offz + (k-2)*g_dz + HALF*g_dz
-                    dcoeff(i,j,k) = 1.d0
+
+                    if(pde_laplsolver .eq. 1) then
+                        dcoeff(i,j,k) = 1.d0
+                    else
+                        vel(i,j,k,XDIR) =  -1.d0	
+                        vel(i,j,k,YDIR) =  0.d0	
+                        vel(i,j,k,ZDIR) =  0.d0
+
+                        dcoeff(i,j,k)   = 0.5d0
+                        reac(i,j,k)     = 2.d0
+                        source(i,j,k)   = -x**2
+                    endif
 
                 enddo
             enddo
@@ -267,10 +288,10 @@ contains
         real*8 :: solve_time
 
         real*8 :: err_tol
-        real*8 :: solnerr
+        real*8 :: solnerr,x
 
         err_tol=ERRTOLR*0.001
-        nvcycles=20
+        nvcycles=pde_nvcycles
 
         allocate(sterm(g_lx,g_ly,g_lz))
         allocate(res(g_lx,g_ly,g_lz))
@@ -303,14 +324,20 @@ contains
             do kk=2,g_lz+1
                 do jj=2,g_ly+1
                     do ii=2,g_lx+1
-                        solnerr=solnerr+(pdesoln(ii,jj,kk)-1.d0)**2
+                    
+                        x = g_offx + (i-2)*g_dx + HALF*g_dx
+
+                        if(pde_laplsolver .eq. 1) then
+                                solnerr=solnerr+(pdesoln(ii,jj,kk)-1.d0)**2
+                        else
+                                solnerr=solnerr+(pdesoln(ii,jj,kk)-0.5d0*(x**2-x))**2
+                        endif
+
                     enddo
                 enddo
             enddo
 
             solnerr=solnerr/(g_lx*g_ly*g_lz)
-
-
 
             if(g_myproc .eq. g_rootproc) print *,"it:",i,resnorm,sqrt(solnerr)
 

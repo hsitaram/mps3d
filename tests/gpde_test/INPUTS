@@ -5,21 +5,21 @@ ORIGIN_X       0.0
 ORIGIN_Y       0.0
 ORIGIN_Z       0.0
 LENGTH_X       1.0
-LENGTH_Y       0.6
-LENGTH_Z       0.4
+LENGTH_Y       1.0
+LENGTH_Z       1.0
 ======================================================
 Grid_and_processors
 ======================================================
-CELLS_X		80
-CELLS_Y		48
-CELLS_Z  	32
-PROC_X  	5	
-PROC_Y  	3
+CELLS_X		64
+CELLS_Y		64
+CELLS_Z  	64
+PROC_X  	2	
+PROC_Y  	2
 PROC_Z  	2
 ======================================================
 Boundary_conditions
 ======================================================
-left	FLUX	-0.25
+left	FLUX    -0.25
 right	DIRC	0.0
 bottom	ZGRD	0.0
 top	ZGRD	0.0
