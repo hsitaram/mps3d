@@ -19,7 +19,7 @@ PROC_Z  	2
 ======================================================
 Boundary_conditions
 ======================================================
-left	DIRC	1.0
+left	DIRC	0.0
 right	DIRC	1.0
 bottom	ZGRD	0.0
 top	ZGRD	0.0
