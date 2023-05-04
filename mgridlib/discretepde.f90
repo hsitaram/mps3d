@@ -5,6 +5,8 @@ module discretepde
 
     implicit none
 
+    !TODO: simplify boundary if loops
+    !TODO: add soln/dt in find_b instead of application side
 
 contains
     !=========================================================================================================

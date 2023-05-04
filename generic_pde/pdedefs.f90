@@ -88,8 +88,9 @@ contains
                     y = g_offy + (j-2)*g_dy + HALF*g_dy
                     z = g_offz + (k-2)*g_dz + HALF*g_dz
 
-                    pdesoln(i,j,k) = 0.5*(x**2-x)
-                    !pdesoln(i,j,k) = 0.d0
+                    !pdesoln(i,j,k) = 0.5*(x**2-x)
+                    !pdesoln(i,j,k) = 10.d0
+                    pdesoln(i,j,k) = 0.d0
 
                 enddo
             enddo
@@ -320,26 +321,7 @@ contains
 
             !Sanity check; see if AX and b are found correctly=======================
 
-            solnerr=0.d0
-            do kk=2,g_lz+1
-                do jj=2,g_ly+1
-                    do ii=2,g_lx+1
-                    
-                        x = g_offx + (i-2)*g_dx + HALF*g_dx
-
-                        if(pde_laplsolver .eq. 1) then
-                                solnerr=solnerr+(pdesoln(ii,jj,kk)-1.d0)**2
-                        else
-                                solnerr=solnerr+(pdesoln(ii,jj,kk)-0.5d0*(x**2-x))**2
-                        endif
-
-                    enddo
-                enddo
-            enddo
-
-            solnerr=solnerr/(g_lx*g_ly*g_lz)
-
-            if(g_myproc .eq. g_rootproc) print *,"it:",i,resnorm,sqrt(solnerr)
+            if(g_myproc .eq. g_rootproc) print *,"it:",i,resnorm
 
             if(resnorm .le. err_tol) exit
 

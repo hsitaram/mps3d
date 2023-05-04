@@ -264,7 +264,7 @@ contains
                 flux_bc_flags,dircvals,fluxvals,dx,dt,n)
             call findnorm(b_norm,Minvb,n)
 
-            if(b_norm .eq. 0) then
+            if(b_norm .eq. 0.d0) then
                 print *,"rhs is zero"
                 x=0.d0
                 exit
