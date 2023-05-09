@@ -120,7 +120,7 @@ contains
         real*8,intent(inout) :: Hessmat(maxkspdim+1,maxkspdim)
         real*8,intent(inout) :: cos_arr(maxkspdim)
         real*8,intent(inout) :: sin_arr(maxkspdim)
-        real*8,intent(inout) :: beta_e1(maxkspdim)
+        real*8,intent(inout) :: beta_e1(maxkspdim+1)
         real*8,intent(out)   :: error
 
         real*8 :: temp, cosine, sine
@@ -264,7 +264,7 @@ contains
                 flux_bc_flags,dircvals,fluxvals,dx,dt,n)
             call findnorm(b_norm,Minvb,n)
 
-            if(b_norm .eq. 0) then
+            if(b_norm .eq. 0.d0) then
                 print *,"rhs is zero"
                 x=0.d0
                 exit
