@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-CHEMFILE=TST_He_N2_chem
-=======
-CHEMFILE=He_chem
->>>>>>> mps3d_origin/main
+CHEMFILE=TST_He_ccp_Turner_chem
 FILE=../fundconstants.f90 ${CHEMFILE}.f90
 OBJFILE=${CHEMFILE}.o fundconstants.o
 

@@ -94,17 +94,10 @@ subroutine setspecparams()
 
 	      no_of_ions = 1
 
-<<<<<<< HEAD
-	      neutralspecmin = 1
-	      neutralspecmax = 1
-
-	      no_of_neutrals = 1
-=======
 	      neutralspecmin = 0
 	      neutralspecmax = -1
 
 	      no_of_neutrals = 0
->>>>>>> mps3d_origin/main
 
 end subroutine setspecparams
 !====================================================================
@@ -221,11 +214,6 @@ function getspecdcoeff(specnum,specarray,elecfield,Te,Tg,Pg)  result(dcoeff)
 		dcoeff=100.d0
 	else if(specnum .eq. 3) then
 		dcoeff=0.01
-<<<<<<< HEAD
-	else if (specnum .eq. 1) then
-		dcoeff = 0.0001 ! TST added this
-=======
->>>>>>> mps3d_origin/main
 	else
 		write(*,*)"species does not exist"
 	endif

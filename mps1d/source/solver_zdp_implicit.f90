@@ -36,6 +36,7 @@ module plasma_solver
 
       real*8, allocatable :: numden(:,:)
       real*8, allocatable :: ydot_i(:,:)
+	  real*8, allocatable :: rates_of_progress_i(:,:)
       real*8, allocatable :: phi(:)
       real*8, allocatable :: efield(:)
       real*8, allocatable :: Ee(:)
@@ -149,6 +150,7 @@ subroutine init()
 	
 	allocate(numden(np,nspecies))
     allocate(ydot_i(np,nspecies))
+	allocate(rates_of_progress_i(np,nreac))
 	allocate(phi(np))
 	allocate(efield(np))
 	allocate(Te(np))
@@ -344,8 +346,8 @@ subroutine ionsolve(ispecnum,printflag,residual)
 				Te(i)*Tescale,T_gas,P_gas)
       	 	
 
-		call getspecproduction(ispecnum,Te(i)*Tescale,T_gas,&
-				specarray,specprod,efield(i))
+		!call getspecproduction(ispecnum,Te(i)*Tescale,T_gas,&
+		!		specarray,specprod,efield(i))
 		
 		ydot_j = 0.0
 		call zdp_getspecproduction(Te(i)*Tescale,T_gas,specarray,ispecnum,ydot_j)
@@ -444,8 +446,8 @@ subroutine neutralsolve(nspecnum,printflag,residual)
 				Te(i)*Tescale,T_gas,P_gas)
 		
 
-		call getspecproduction(nspecnum,Te(i)*Tescale,T_gas,&
-				specarray,specprod,efield(i))
+		!call getspecproduction(nspecnum,Te(i)*Tescale,T_gas,&
+		!		specarray,specprod,efield(i))
 		
 		ydot_j = 0.0
 		call zdp_getspecproduction(Te(i)*Tescale,T_gas,specarray,nspecnum,ydot_j)
@@ -537,12 +539,12 @@ subroutine electronsolve(printflag,residual)
 		source(i) =   0.d0
 		
 
-		call getspecproduction(especnum,Te(i)*Tescale,T_gas,&
-				specarray,specprod,efield(i))
+		!call getspecproduction(especnum,Te(i)*Tescale,T_gas,&
+		!		specarray,specprod,efield(i))
 
 		ydot_j = 0.0
 		call zdp_getspecproduction(Te(i)*Tescale,T_gas,specarray,especnum,ydot_j)
-		write(*,*) "ydot_j_electron = ", ydot_j, " specprod = ", specprod
+		!write(*,*) "ydot_j_electron = ", ydot_j, " specprod = ", specprod
 		source(i) = ydot_j / nscale
 !        source(i) = ydot_i(i,especnum) / nscale
 !		 source(i)   =   source(i) + specprod/nscale  
@@ -831,12 +833,17 @@ subroutine inelastic_colterm(inelastic_col)
 
 	do i=1,np
 	
-      	  	do j=1,nspecies
+      	do j=1,nspecies
   			specarray(j)=numden(i,j)*nscale
-	 	 enddo	
+	 	enddo
+
+		rates_of_progress_i(i,:) = zdp_getratesofprogress(Te(i)*Tescale,T_gas,nscale*numden(i,:))	
 	  
-	  	call getelectroninelasticterm(Te(i)*Tescale,T_gas,&
-			  specarray,inelterm,efield(i))
+	  	!call getelectroninelasticterm(Te(i)*Tescale,T_gas,&
+		!	  specarray,inelterm,efield(i))
+
+		call zdp_getelectroninelasticterm(Te(i)*Tescale,T_gas,&
+			  specarray,inelterm,rates_of_progress_i(i,:))	  
 
 	  	inelastic_col(i) = inelterm/nscale
 	  
@@ -847,12 +854,14 @@ end subroutine inelastic_colterm
 subroutine timestepping()
 
 	integer :: it,j,i,rescounter,nresiduals,fnum
+	integer :: outputfilenum
 	real*8 :: time
 	logical :: printflag
 	real*8,allocatable :: residual(:)
 	real*8 :: user_spec_voltage,pulse_voltage
 	
 	fnum=13
+	outputfilenum=0
 
 	nresiduals=1+1+1+no_of_ions+no_of_neutrals
 	allocate(residual(nresiduals))
@@ -876,7 +885,8 @@ subroutine timestepping()
 		
 		rescounter=1
 		if(mod(it,printfileit) .eq. 0) then
-			call printfile(it)
+			call printfile(outputfilenum)
+			outputfilenum=outputfilenum+1
 		endif
 		
 		if(mod(it,printit) .eq. 0) then
@@ -896,6 +906,11 @@ subroutine timestepping()
 			
 				pulse_voltage = gaussian_waveform(prob_specific_params(4),prob_specific_params(5),&
 								time,user_spec_voltage,prob_specific_params(6))
+			
+			else if(prob_specific_params(3) .eq. 3) then
+			
+				pulse_voltage = sinusoidal_waveform(prob_specific_params(4),prob_specific_params(5),&
+								prob_specific_params(6),time)			
 				
 			endif
 
@@ -913,21 +928,6 @@ subroutine timestepping()
 		
 		call elecenergysolve(printflag,residual(rescounter))
 		rescounter=rescounter+1
-		
-!        ! TST - Call zdp to calculate all species source terms
-!        do i=1,np
-!            call zdp_getspecproduction(Te(i)*Tescale,T_gas,nscale*numden(i,:))
-!
-!            ydot_i(i,:) = ydot
-!           !write(*,*) "time = ", time
-!           !write(*,*) "x = ", (i-1)*dx, " ydot = ", ydot
-!
-!           do j=1,nspecies
-!               call getspecproduction(j,Te(i)*Tescale,T_gas,nscale*numden(i,:),&
-!               specprod,efield(i))
-!               !write(*,*) "x = ", (i-1)*dx, ", specprod[",j,"] = ", specprod
-!           enddo
-!        enddo        
 
 		call electronsolve(printflag,residual(rescounter))
 		rescounter=rescounter+1
@@ -957,7 +957,7 @@ subroutine timestepping()
 
 	enddo
 
-	call printfile(it)
+	call printfile(outputfilenum)
 
 	close(fnum)
 
@@ -974,6 +974,7 @@ subroutine printfile(it)
 	real*8 :: specprod
 	integer :: prodfptr,solnfptr
 	real*8 :: specarray(nspecies)
+	real*8 :: ydot_j
 
 	prodfptr=14
 	solnfptr=15
@@ -1009,24 +1010,23 @@ subroutine printfile(it)
 			specarray(j)=numden(i,j)*nscale
 		enddo
 
-		call getspecproduction(especnum,Te(i)*Tescale,T_gas,&
-				specarray,specprod,efield(i))
+		call zdp_getspecproduction(Te(i)*Tescale,T_gas,specarray,especnum,ydot_j)
 
-      		write(prodfptr,'(E20.10,E20.10)',advance='no') (i-1)*dx,specprod
+      	write(prodfptr,'(E20.10,E20.10)',advance='no') (i-1)*dx,ydot_j
+		
 
 		do j=ionspecmin,ionspecmax
 
-			call getspecproduction(j,Te(i)*Tescale,T_gas,&
-				specarray,specprod,efield(i))
-      			write(prodfptr,'(E20.10)',advance='no') specprod
+			call zdp_getspecproduction(Te(i)*Tescale,T_gas,specarray,j,ydot_j)
+      			write(prodfptr,'(E20.10)',advance='no') ydot_j
 
 		enddo
 		
 		do j=neutralspecmin,neutralspecmax
-			
-			call getspecproduction(j,Te(i)*Tescale,T_gas,&
-				specarray,specprod,efield(i))
-      			write(prodfptr,'(E20.10)',advance='no') specprod
+
+			call zdp_getspecproduction(Te(i)*Tescale,T_gas,specarray,j,ydot_j)
+      		write(prodfptr,'(E20.10)',advance='no') ydot_j			
+
 		enddo
       		
 		write(prodfptr,'(A)',advance='yes')
@@ -1157,6 +1157,17 @@ function gaussian_waveform(peak_time,width_time,time,V0,minimum_val) result(V)
 	endif
 	
 end function gaussian_waveform
+!=============================================================================
+
+function sinusoidal_waveform(Vbias,Vampl,freq,time) result(V)
+
+	real*8, intent(in)  :: Vbias,Vampl,freq,time
+	real*8 :: V	
+	
+	!update voltage waveform
+	V = Vbias + Vampl*sin(2.d0*pi*freq*time)
+		
+end function sinusoidal_waveform
 !=============================================================================
 
 end module plasma_solver

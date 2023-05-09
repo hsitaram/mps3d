@@ -94,7 +94,7 @@ subroutine assignreactions()
 	k_arrh(3,rnum)   = 437818.75
 	!-----------------------------------
 	elecenergy(rnum) = -37.72836
-        gasenergy(rnum)  = 0.0
+    gasenergy(rnum)  = 0.0
 	!+++++++++++++++++++++++++++++++++++
 
 

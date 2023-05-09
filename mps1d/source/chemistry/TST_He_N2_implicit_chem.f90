@@ -128,11 +128,11 @@ function zdp_getreactionrates(Te, Tgas) result(rrt)
         real*8 :: rrt(nreac)
         real*8, intent(in) :: Te, Tgas
 
-		rrt(01) = (2.308D-10)*(TE**0.31)*EXP((-2.297D+05)/TE)
+		rrt(01) = (2.308D-10)*(TE**0.31)*EXP(-(2.297D+05)/TE)
 		rrt(02) = (1.099D-11)*(TE**0.31)
-		rrt(03) = (2.584D-12)*(TE**0.68)*EXP((-2.854092D+05)/TE)
-		rrt(04) = (4.661D-10)*(TE**0.6)*EXP((-5.546D+04)/TE)
-		rrt(05) = (1.268D-12)*(TE**0.71)*EXP((-3.945D+04)/TE)
+		rrt(03) = (2.584D-12)*(TE**0.68)*EXP(-(2.854092D+05)/TE)
+		rrt(04) = (4.661D-10)*(TE**0.6)*EXP(-(5.546D+04)/TE)
+		rrt(05) = (1.268D-12)*(TE**0.71)*EXP(-(3.945D+04)/TE)
 		rrt(06) = (5.386D-07)*(TE**(-0.5))
 		rrt(07) = 2.7D-10
 		rrt(08) = 1.3D-33
@@ -190,13 +190,17 @@ function zdp_getratesofprogress(Te,Tg,specden) result(rrt)
 		
 end function zdp_getratesofprogress
 
-subroutine zdp_getspecproduction(Te,Tg,specden) 
+subroutine zdp_getspecproduction(Te,Tg,specden,j,ydot_j) 
 
     	real*8, intent(in) :: Te, Tg
  		real*8, intent(in) :: specden(nspecies)
 		real*8 :: rrt(nreac)
+        integer :: j
+		real*8, intent(inout) :: ydot_j
 
 		rrt = zdp_getratesofprogress(Te,Tg,specden)
+
+        ydot_j = 0.0
 
 		ydot(01) = +rrt(03)+rrt(04)+rrt(05)-rrt(06)+rrt(07)+rrt(10)+rrt(11)-rrt(16)-rrt(17)+rrt(19)+rrt(20) 
 		ydot(02) = +rrt(03)+rrt(04)+rrt(07)-rrt(09)-rrt(12)-rrt(13) 
@@ -209,6 +213,8 @@ subroutine zdp_getspecproduction(Te,Tg,specden)
 		ydot(09) = -rrt(01)+rrt(02)-rrt(03)+rrt(06)+rrt(07)-rrt(08)-rrt(09)+rrt(10)+& 
 					2.d0 * rrt(11)+rrt(12)+rrt(13)+ 2.d0 * rrt(14) + 2.d0 * rrt(15) 
 		ydot(10) = -rrt(10)-rrt(11)-rrt(12)-rrt(13)-rrt(14)-rrt(15)+rrt(16)-rrt(18)-rrt(20) 
+
+        ydot_j = ydot(j)
 
 end subroutine zdp_getspecproduction
 
@@ -430,23 +436,23 @@ function getspecmobility(specnum,specarray,elecfield,Te,Tg,Pg)  result(mobility)
 
 	if(specnum .eq. E) then
  
-		mobility = (-0.11320)*(Patm/Pg)
+		mobility = -0.11320
 
 	else if(specnum .eq. Hep) then
 		
-		mobility   = (1.482d-03)*(Patm/Pg)
+		mobility   = 1.482d-03
 
 	else if(specnum .eq. He2p) then
 
-		mobility   = (2.403d-03)*(Patm/Pg)
+		mobility   = 2.403d-03
 
 	else if(specnum .eq. Np) then
 
-		mobility   = (2.863d-03)*(Patm/Pg)
+		mobility   = 2.863d-03
 
 	else if(specnum .eq. N2p) then
 	
-		mobility   = (2.993d-03)*(Patm/Pg)
+		mobility   = 2.993d-03
 
 	else
 		write(*,*)"species does not exist"

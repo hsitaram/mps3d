@@ -29,6 +29,9 @@ module plasma_solver
       integer :: np
       real*8  :: dx
       real*8  :: dt
+	  real*8  :: dtmax
+	  real*8  :: dtmin
+	  real*8  :: dt_ramp_rate
       real*8  :: finaltime
       real*8  :: maxtimesteps
       integer :: printit
@@ -93,8 +96,11 @@ subroutine init()
 	read(inpfptr,*) temp,printit
 	read(inpfptr,*) temp,finaltime
 	read(inpfptr,*) temp,nscale
+	read(inpfptr,*) temp,dtmax
+	read(inpfptr,*) temp,dt_ramp_rate
 
 	dx = length/(np-1)
+	dtmin = dt
 
 	!Restart parameters
 	read(inpfptr,*) temp
@@ -845,12 +851,14 @@ end subroutine inelastic_colterm
 subroutine timestepping()
 
 	integer :: it,j,i,rescounter,nresiduals,fnum
+	integer :: outputfilenum
 	real*8 :: time
 	logical :: printflag
 	real*8,allocatable :: residual(:)
 	real*8 :: user_spec_voltage,pulse_voltage
 	
 	fnum=13
+	outputfilenum=0
 
 	nresiduals=1+1+1+no_of_ions+no_of_neutrals
 	allocate(residual(nresiduals))
@@ -874,7 +882,8 @@ subroutine timestepping()
 		
 		rescounter=1
 		if(mod(it,printfileit) .eq. 0) then
-			call printfile(it)
+			call printfile(outputfilenum)
+            outputfilenum=outputfilenum+1
 		endif
 		
 		if(mod(it,printit) .eq. 0) then
@@ -894,6 +903,11 @@ subroutine timestepping()
 			
 				pulse_voltage = gaussian_waveform(prob_specific_params(4),prob_specific_params(5),&
 								time,user_spec_voltage,prob_specific_params(6))
+
+			else if(prob_specific_params(3) .eq. 3) then
+			
+				pulse_voltage = sinusoidal_waveform(prob_specific_params(4),prob_specific_params(5),&
+								prob_specific_params(6),time)
 				
 			endif
 
@@ -935,9 +949,12 @@ subroutine timestepping()
 		enddo
 
 		it=it+1
+		dt = min(dtmin + dt_ramp_rate*time,dtmax)
 		time=time+dt
 		if(printflag .eqv. .true.) then
 			print *,"it=",it,"time=",time
+			write(*,*) "dt = ", dt
+
 			print *,"==============================&
 			==============================&
 			=============================="
@@ -947,7 +964,7 @@ subroutine timestepping()
 
 	enddo
 
-	call printfile(it)
+	call printfile(outputfilenum)
 
 	close(fnum)
 
@@ -990,10 +1007,10 @@ subroutine printfile(it)
 			write(solnfptr,'(E20.10)',advance='no') numden(i,j)*nscale
 		enddo
 	
-		write(solnfptr,'(E20.10,E20.10,E20.10,E20.10,E20.10,E20.10,E20.10)',advance='yes') & 
+		write(solnfptr,'(E20.10,E20.10,E20.10,E20.10,E20.10,E20.10,E20.10,E20.10)',advance='yes') & 
 		Ee(i),Te(i),&
-		jheating(i),elastic_col(i),inelastic_col(i),ecurr(i),icurr(i)
-        enddo
+		jheating(i),elastic_col(i),inelastic_col(i),ecurr(i),icurr(i),dielectricrelaxationtime(i)
+    enddo
 
 	do i=1,np
 
@@ -1013,7 +1030,6 @@ subroutine printfile(it)
 !				specarray,specprod,efield(i))
 !      			write(prodfptr,'(E20.10)',advance='no') specprod
       			write(prodfptr,'(E20.10)',advance='no') ydot_i(i,j)
-
 		enddo
 		
 		do j=neutralspecmin,neutralspecmax
@@ -1022,12 +1038,10 @@ subroutine printfile(it)
 !				specarray,specprod,efield(i))
 !      			write(prodfptr,'(E20.10)',advance='no') specprod
       			write(prodfptr,'(E20.10)',advance='no') ydot_i(i,j)
-
 		enddo
       		
 		write(prodfptr,'(A)',advance='yes')
 	enddo
-
 
 	close(solnfptr)
 	close(prodfptr)
@@ -1155,5 +1169,41 @@ function gaussian_waveform(peak_time,width_time,time,V0,minimum_val) result(V)
 	
 end function gaussian_waveform
 !=============================================================================
+function sinusoidal_waveform(Vbias,Vampl,freq,time) result(V)
+
+	real*8, intent(in)  :: Vbias,Vampl,freq,time
+	real*8 :: V	
+	
+	!update voltage waveform
+	V = Vbias + Vampl*sin(2.d0*pi*freq*time)
+		
+end function sinusoidal_waveform
+!=============================================================================
+
+function dielectricrelaxationtime(grid_index) result(dielectric_relax_time)
+
+	integer :: grid_index
+	real*8 :: dielectric_relax_time
+	real*8 :: mu_i, mu_e
+	real*8 :: denom
+	integer :: i, j
+
+	denom = 0.0
+
+	i = grid_index
+	
+	do j = ionspecmin,ionspecmax
+		mu_i = getspecmobility(j,numden(i,:)*nscale,efield(i),&
+		Te(i)*Tescale,T_gas,P_gas)
+		denom = denom + mu_i*echarge*spec_charge(j)*numden(i,j)*nscale
+	enddo
+
+	mu_e = getspecmobility(especnum,numden(i,:)*nscale,efield(i),&
+				Te(i)*Tescale,T_gas,P_gas)			
+	denom = denom + mu_e*echarge*spec_charge(especnum)*numden(i,especnum)*nscale
+	dielectric_relax_time = epsilon_0 / (denom)
+	!write(*,*) i, dielectric_relax_time, efield(i)
+	
+end function
 
 end module plasma_solver

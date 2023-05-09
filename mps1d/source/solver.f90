@@ -948,7 +948,7 @@ subroutine printfile(it)
 
 	prodfptr=14
 	solnfptr=15
-	write(itstr,'(I4.4)') it
+	write(itstr,'(I7.7)') it
 
 	solnfname="soln_"//trim(itstr)//".dat"
 	prodfname="prod_"//trim(itstr)//".dat"
