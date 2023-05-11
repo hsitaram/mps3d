@@ -949,11 +949,11 @@ subroutine timestepping()
 		enddo
 
 		it=it+1
-		dt = min(dtmin + dt_ramp_rate*time,dtmax)
+		!dt = min(dtmin + dt_ramp_rate*time,dtmax)
 		time=time+dt
 		if(printflag .eqv. .true.) then
 			print *,"it=",it,"time=",time
-			write(*,*) "dt = ", dt
+			!write(*,*) "dt = ", dt
 
 			print *,"==============================&
 			==============================&
