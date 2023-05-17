@@ -1,0 +1,1098 @@
+# CH4/O2/N2.
+# Plasma-assisted ignition kinetic model incorporating rotationally excited species, vibrationally excited species, electronically excited species, radicals, ions and electrons.
+# Xingqian Mao and Qi Chen. Effects of Vibrational Excitation on Nanosecond Discharge Enhanced Methane-Air Ignition, AIAA Journal, 2018.
+
+ 
+ELEMENTS
+O H C N E
+END
+
+
+SPECIES
+H2      H       O       O2      OH      H2O     HO2     H2O2    
+C       CH      CH2     CH2(S)  CH3     CH4     CO      CO2     
+HCO     CH2O    CH2OH   CH3O    CH3OH   C2H2    C2H3    
+C2H4    C2H5    C2H6    HCCO    N       NH      
+NNH     NO      NO2     N2O     HNO     CN      
+HCN     H2CN    HCNN    HNCO    NCO     N2      
+C3H7    C3H8    CH2CHO  CH3CHO  CH3O2
+#####plasma species
+N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7) N2(v8)
+O2(v1) O2(v2) O2(v3) O2(v4)
+CH4(v24) CH4(v13)
+N2(A) N2(B) N2(a') N2(C)
+O2(a1) O2(b1) O2* O(1D) O(1S)
+N2^+ O2^+ CH4^+ CH3^+ CH2^+ 
+E
+
+END
+
+
+BOLSIG
+N2 O2 CH4 
+
+END
+
+
+REACTIONS
+
+$ double precision :: dTion, TionN, TionN2, TeffN, TeffN2! K
+$ dTion  = 2.0d0/(3.0d0*1.3807d-16)*1.6605d-24*(1.0d-17*EN)**2
+$ TionN2 = Tgas+dTion*28.0d0*4.1d19**2
+$ TeffN2 = (TionN2+1.0d0*Tgas)/(1.0d0+1.0d0 )
+
+$ double precision :: kVT10_N2N2, kVT10_N2O2, kVT10_N2CO2, kVT10_N2H2O, kVT10_N2H2, kVT10_N2OH, kVT10_N2H ! cm3.s-1
+$ double precision :: kVT10_N2O, kVT10_N2CH4, kVT10_N2C2H2, kVT10_N2C2H4, kVT10_N2C2H6, kVT10_N2C3H8, kVT10_N2N ! cm3.s-1
+$ kVT10_N2N2 = Tgas*exp(-22.86d0-328.9d0/Tgas**(1.0d0/3.0d0)+993.3d0/Tgas**(2.0d0/3.0d0))
+$ kVT10_N2O2 = Tgas*exp(-22.86d0-328.9d0/Tgas**(1.0d0/3.0d0)+993.3d0/Tgas**(2.0d0/3.0d0))
+$ kVT10_N2CO2 = exp(-19.414d0-134.73d0/Tgas**(1.0d0/3.0d0)+253.2d0/Tgas**(2.0d0/3.0d0)+251.7d0/Tgas) 
+$ kVT10_N2H2O = Tgas*exp(-35.12d0-21.18d0/Tgas**(1.0d0/3.0d0))
+$ kVT10_N2H2 = Tgas*exp(-24.89d0-167.24d0/Tgas**(1.0d0/3.0d0)+394.43d0/Tgas**(2.0d0/3.0d0))
+$ kVT10_N2OH = Tgas*exp(-24.89d0-167.24d0/Tgas**(1.0d0/3.0d0)+394.43d0/Tgas**(2.0d0/3.0d0))
+$ kVT10_N2H = 3.1d0*Tgas*exp(-24.89d0-167.24d0/Tgas**(1.0d0/3.0d0)+394.43d0/Tgas**(2.0d0/3.0d0)) 
+$ kVT10_N2O = Tgas*exp(-34.03d0-33.11d0/Tgas**(1.0d0/3.0d0))
+$ kVT10_N2CH4 = 3.2d-14*Tgas*exp(-41.45d0/Tgas**(1.0d0/3.0d0))
+$ kVT10_N2C2H2 = 1.2d-15*Tgas*exp(-17.27d0/Tgas**(1.0d0/3.0d0))
+$ kVT10_N2C2H4 = 6.0d-16*Tgas
+$ kVT10_N2C2H6 = 6.0d-16*Tgas
+$ kVT10_N2C3H8 = 6.0d-16*Tgas
+$ kVT10_N2N  = 4.0d-16*(Tgas/300.0d0)**0.5
+
+
+$ double precision :: kVT10_O2N2, kVT10_O2O2, kVT10_O2CO2, kVT10_O2H2O, kVT10_O2H2, kVT10_O2CH4, kVT10_O2C2H2 ! cm3.s-1
+$ double precision :: kVT10_O2C2H4, kVT10_O2OH, kVT10_O2H, kVT10_O2O, kVT10_O2C2H6, kVT10_O2C3H8 ! cm3.s-1
+$ kVT10_O2N2 = exp(-28.02d0-132.0d0/Tgas**(1.0d0/3.0d0))
+$ kVT10_O2O2 = exp(-18.32d0-157.0d0/Tgas**(1.0d0/3.0d0)) 
+$ kVT10_O2CO2 = Tgas*exp(-27.34d0-146.5d0/Tgas**(1.0d0/3.0d0)) 
+$ kVT10_O2H2O = 100*exp(-18.32d0-157.0d0/Tgas**(1.0d0/3.0d0)) 
+$ kVT10_O2H2 = exp(-22.04d0-91.5d0/Tgas**(1.0d0/3.0d0))
+$ kVT10_O2CH4 = Tgas*exp(-30.39d0-41.45d0/Tgas**(1.0d0/3.0d0))
+$ kVT10_O2C2H2 = Tgas*exp(-33.61d0-17.27d0/Tgas**(1.0d0/3.0d0))
+$ kVT10_O2C2H4 = 1.05d-15*Tgas
+$ kVT10_O2OH = 100*exp(-18.32d0-157.0d0/Tgas**(1.0d0/3.0d0)) 
+$ kVT10_O2H = 1.7*exp(-22.04d0-91.5d0/Tgas**(1.0d0/3.0d0))
+$ kVT10_O2O = Tgas*exp(-28.87d0-111.0d0/Tgas**(1.0d0/3.0d0)) 
+$ kVT10_O2C2H6 = 1.05d-15*Tgas
+$ kVT10_O2C3H8 = 1.05d-15*Tgas
+
+#-----------------------------------------------------------------------
+#
+#  electron impact
+#
+#-----------------------------------------------------------------------
+
+# rotational excitation
+# Phelps database, www.lxcat.net.
+E + N2 => E + N2                          !  BOLSIG  N2 -> N2(rot)
+E + O2 => E + O2                          !  BOLSIG  O2 -> O2(rot)
+
+# vibrational excitation
+# Phelps database, www.lxcat.net.
+E + N2 => E + N2(v1)                      !  BOLSIG  N2 -> N2(v1res)
+E + N2 => E + N2(v1)                      !  BOLSIG  N2 -> N2(v1)
+E + N2 => E + N2(v2)                      !  BOLSIG  N2 -> N2(v2)
+E + N2 => E + N2(v3)                      !  BOLSIG  N2 -> N2(v3)
+E + N2 => E + N2(v4)                      !  BOLSIG  N2 -> N2(v4)
+E + N2 => E + N2(v5)                      !  BOLSIG  N2 -> N2(v5)
+E + N2 => E + N2(v6)                      !  BOLSIG  N2 -> N2(v6)
+E + N2 => E + N2(v7)                      !  BOLSIG  N2 -> N2(v7)
+E + N2 => E + N2(v8)                      !  BOLSIG  N2 -> N2(v8)
+E + O2 => E + O2(v1)                      !  BOLSIG  O2 -> O2(v1res)
+E + O2 => E + O2(v1)                      !  BOLSIG  O2 -> O2(v1)
+E + O2 => E + O2(v2)                      !  BOLSIG  O2 -> O2(v2res)
+E + O2 => E + O2(v2)                      !  BOLSIG  O2 -> O2(v2)
+E + O2 => E + O2(v3)                      !  BOLSIG  O2 -> O2(v3)
+E + O2 => E + O2(v4)                      !  BOLSIG  O2 -> O2(v4)
+# IST-Lisbon database, www.lxcat.net.
+E + CH4 => E + CH4(v24)                   !  BOLSIG  CH4 -> CH4(v24)
+E + CH4 => E + CH4(v13)                   !  BOLSIG  CH4 -> CH4(v13)
+
+# electronic excitation
+# Phelps database, www.lxcat.net.
+E + N2 => E + N2(A)                       !  BOLSIG N2 -> @R
+   @R = N2(A1)   N2(A2)   N2(A3)
+E + N2 => E + N2(B)                       !  BOLSIG N2 -> @R
+   @R = N2(B3)   N2(W3)   N2(B'3)
+E + N2 => E + N2(a')                      !  BOLSIG N2 -> @R
+   @R = N2(au1)  N2(a'1)  N2(w1)
+E + N2 => E + N2(C)                       !  BOLSIG N2 -> @R
+   @R = N2(C3)   N2(E3)   N2(a''1) 
+E + O2 => E + O2(a1)                      !  BOLSIG O2 -> O2(a1)
+E + O2 => E + O2(b1)                      !  BOLSIG O2 -> O2(b1)
+E + O2 => E + O2*                         !  BOLSIG O2 -> O2*  
+
+# dissociation
+# Phelps database, www.lxcat.net.
+E + N2 => E + N + N                       !  BOLSIG N2 -> N + N
+E + O2 => E + O + O                       !  BOLSIG O2 -> O + O
+E + O2 => E + O + O(1D)                   !  BOLSIG O2 -> O + O(1D)
+E + O2 => E + O + O(1S)                   !  BOLSIG O2 -> O + O(1S)
+# R.K. Janev, D. Reiter, Phys. Plasmas. 9 (9) (2002) 4071-4081.
+E + CH4 => E + CH3 + H                    !  BOLSIG CH4 -> CH3 + H
+E + CH4 => E + CH2 + H2                   !  BOLSIG CH4 -> CH2 + H2
+E + CH4 => E + CH + H2 + H                !  BOLSIG CH4 -> CH + H2 + H
+E + CH4 => E + C + 2H2                    !  BOLSIG CH4 -> C + 2H2
+
+# ionization
+# Phelps database, www.lxcat.net.
+E + N2 => E + E + N2^+                    !  BOLSIG N2 -> N2^+
+E + O2 => E + E + O2^+                    !  BOLSIG O2 -> O2^+
+# H.C. Straub, D.Lin, et al, J. Chem. Phys. 106 (11) (1997) 4430-4435.
+E + CH4 => E + E + CH4^+                  !  BOLSIG CH4 -> CH4^+
+E + CH4 => E + E + CH3^+ + H              !  BOLSIG CH4 -> CH3^+ + H
+E + CH4 => E + E + CH2^+ + H2             !  BOLSIG CH4 -> CH2^+ + H2
+
+#-----------------------------------------------------------------------
+#
+# relaxation of N2(v)
+#
+#-----------------------------------------------------------------------
+
+# A. Starikovskiy, N. Aleksandrov, Prog. Energy Combust. Sci. 39 (1) (2013) 61-110.
+@A + N2 => @B + N2                          !  kVT10_N2N2 * @R
+    @A = N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7) N2(v8)
+    @B = N2     N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0  5.0d0  6.0d0  7.0d0  8.0d0	
+
+@A + O2 => @B + O2                          !  kVT10_N2O2 * @R
+    @A = N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7) N2(v8)
+    @B = N2     N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0  5.0d0  6.0d0  7.0d0  8.0d0	
+
+@A + CO2 => @B + CO2                        !  kVT10_N2CO2 * @R
+    @A = N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7) N2(v8)
+    @B = N2     N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0  5.0d0  6.0d0  7.0d0  8.0d0	
+
+@A + H2O => @B + H2O                        !  kVT10_N2H2O * @R
+    @A = N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7) N2(v8)
+    @B = N2     N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0  5.0d0  6.0d0  7.0d0  8.0d0	
+
+@A + H2 => @B + H2                          !  kVT10_N2H2 * @R
+    @A = N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7) N2(v8)
+    @B = N2     N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0  5.0d0  6.0d0  7.0d0  8.0d0	
+
+@A + OH => @B + OH                          !  kVT10_N2OH * @R
+    @A = N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7) N2(v8)
+    @B = N2     N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0  5.0d0  6.0d0  7.0d0  8.0d0	
+
+@A + H => @B + H                            !  kVT10_N2H * @R
+    @A = N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7) N2(v8)
+    @B = N2     N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0  5.0d0  6.0d0  7.0d0  8.0d0	
+
+@A + O => @B + O                            !  kVT10_N2O * @R
+    @A = N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7) N2(v8)
+    @B = N2     N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0  5.0d0  6.0d0  7.0d0  8.0d0
+
+# A. Starikovskiy, N. Aleksandrov, Mechanism of Plasma-Assisted Ignition for H2 and C1-C5 Hydrocarbons, 55th AIAA Aerospace Sciences Meeting, 2017.
+@A + CH4 => @B + CH4                        !  kVT10_N2CH4 * @R
+    @A = N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7) N2(v8)
+    @B = N2     N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0  5.0d0  6.0d0  7.0d0  8.0d0
+
+@A + C2H2 => @B + C2H2                      !  kVT10_N2C2H2 * @R
+    @A = N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7) N2(v8)
+    @B = N2     N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0  5.0d0  6.0d0  7.0d0  8.0d0
+
+@A + C2H4 => @B + C2H4                      !  kVT10_N2C2H4 * @R
+    @A = N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7) N2(v8)
+    @B = N2     N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0  5.0d0  6.0d0  7.0d0  8.0d0
+
+@A + C2H6 => @B + C2H6                      !  kVT10_N2C2H6 * @R
+    @A = N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7) N2(v8)
+    @B = N2     N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0  5.0d0  6.0d0  7.0d0  8.0d0
+
+@A + C3H8 => @B + C3H8                      !  kVT10_N2C3H8 * @R
+    @A = N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7) N2(v8)
+    @B = N2     N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0  5.0d0  6.0d0  7.0d0  8.0d0
+
+# M.Capitelli. Plasma Kinetics in Atmospheric Gases. Springer.
+@A + N => @B + N                            !  kVT10_N2N * @R
+    @A = N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7) N2(v8)
+    @B = N2     N2(v1) N2(v2) N2(v3) N2(v4) N2(v5) N2(v6) N2(v7)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0  5.0d0  6.0d0  7.0d0  8.0d0
+
+#-----------------------------------------------------------------------
+#
+# relaxation of O2(v)
+#
+#-----------------------------------------------------------------------
+
+# A. Starikovskiy, N. Aleksandrov, Prog. Energy Combust. Sci. 39 (1) (2013) 61-110.
+@A + N2 => @B + N2                        !  kVT10_O2N2 * @R
+    @A = O2(v1) O2(v2) O2(v3) O2(v4)
+    @B = O2     O2(v1) O2(v2) O2(v3)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0
+
+@A + O2 => @B + O2                        !  kVT10_O2O2 * @R
+    @A = O2(v1) O2(v2) O2(v3) O2(v4)
+    @B = O2     O2(v1) O2(v2) O2(v3)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0
+
+@A + CO2 => @B + CO2                      !  kVT10_O2CO2 * @R
+    @A = O2(v1) O2(v2) O2(v3) O2(v4)
+    @B = O2     O2(v1) O2(v2) O2(v3)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0
+
+@A + H2O => @B + H2O                      !  kVT10_O2H2O * @R
+    @A = O2(v1) O2(v2) O2(v3) O2(v4)
+    @B = O2     O2(v1) O2(v2) O2(v3)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0
+
+@A + H2 => @B + H2                        !  kVT10_O2H2 * @R
+    @A = O2(v1) O2(v2) O2(v3) O2(v4)
+    @B = O2     O2(v1) O2(v2) O2(v3)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0
+
+@A + CH4 => @B + CH4                      !  kVT10_O2CH4 * @R
+    @A = O2(v1) O2(v2) O2(v3) O2(v4)
+    @B = O2     O2(v1) O2(v2) O2(v3)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0
+
+@A + C2H2 => @B + C2H2                    !  kVT10_O2C2H2 * @R
+    @A = O2(v1) O2(v2) O2(v3) O2(v4)
+    @B = O2     O2(v1) O2(v2) O2(v3)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0
+
+@A + C2H4 => @B + C2H4                    !  kVT10_O2C2H4 * @R
+    @A = O2(v1) O2(v2) O2(v3) O2(v4)
+    @B = O2     O2(v1) O2(v2) O2(v3)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0
+
+@A + OH => @B + OH                        !  kVT10_O2OH * @R
+    @A = O2(v1) O2(v2) O2(v3) O2(v4)
+    @B = O2     O2(v1) O2(v2) O2(v3)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0
+
+@A + H => @B + H                          !  kVT10_O2H * @R
+    @A = O2(v1) O2(v2) O2(v3) O2(v4)
+    @B = O2     O2(v1) O2(v2) O2(v3)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0
+
+@A + O => @B + O                          !  kVT10_O2O * @R
+    @A = O2(v1) O2(v2) O2(v3) O2(v4)
+    @B = O2     O2(v1) O2(v2) O2(v3)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0
+
+# A. Starikovskiy, N. Aleksandrov, Mechanism of Plasma-Assisted Ignition for H2 and C1-C5 Hydrocarbons, 55th AIAA Aerospace Sciences Meeting, 2017.
+@A + C2H6 => @B + C2H6                    !  kVT10_O2C2H6 * @R
+    @A = O2(v1) O2(v2) O2(v3) O2(v4)
+    @B = O2     O2(v1) O2(v2) O2(v3)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0
+
+@A + C3H8 => @B + C3H8                    !  kVT10_O2C3H8 * @R
+    @A = O2(v1) O2(v2) O2(v3) O2(v4)
+    @B = O2     O2(v1) O2(v2) O2(v3)
+    @R = 1.0d0  2.0d0  3.0d0  4.0d0
+
+#-----------------------------------------------------------------------
+#
+# relaxation of CH4(v)
+#
+#-----------------------------------------------------------------------
+
+# A. Starikovskiy, N. Aleksandrov, Prog. Energy Combust. Sci. 39 (1) (2013) 61-110.
+CH4(v24) + CH4 => CH4 + CH4      ! Tgas*exp(-30.65d0-40.0d0/Tgas**(1.0d0/3.0d0))
+CH4(v13) + CH4 => CH4 + CH4      ! Tgas*exp(-30.65d0-40.0d0/Tgas**(1.0d0/3.0d0))
+CH4(v24) + ANY_NEUTRAL => CH4 + ANY_NEUTRAL  ! Tgas*exp(-31.45d0-61.0d0/Tgas**(1.0d0/3.0d0))
+CH4(v13) + ANY_NEUTRAL => CH4 + ANY_NEUTRAL  ! Tgas*exp(-31.45d0-61.0d0/Tgas**(1.0d0/3.0d0))
+
+#-----------------------------------------------------------------------
+#
+# chemical reaction of N2(v)
+#
+#-----------------------------------------------------------------------
+
+# calculated by theory in A. Fridman, Plasma chemistry, Cambridge University Press, New York, 2008.
+HO2+N2(v1)=>H+O2+N2              !  2.951d-3/Tgas**1.720d0*exp(-21915.9d0/Tgas)
+HO2+N2(v2)=>H+O2+N2              !  2.951d-3/Tgas**1.720d0*exp(-18621.9d0/Tgas)
+HO2+N2(v3)=>H+O2+N2              !  2.951d-3/Tgas**1.720d0*exp(-15339.9d0/Tgas)
+HO2+N2(v4)=>H+O2+N2              !  2.951d-3/Tgas**1.720d0*exp(-12058.0d0/Tgas)
+HO2+N2(v5)=>H+O2+N2              !  2.951d-3/Tgas**1.720d0*exp(-8766.37d0/Tgas)
+HO2+N2(v6)=>H+O2+N2              !  2.951d-3/Tgas**1.720d0*exp(-5479.58d0/Tgas)
+HO2+N2(v7)=>H+O2+N2              !  2.951d-3/Tgas**1.720d0*exp(-2192.79d0/Tgas)
+HO2+N2(v8)=>H+O2+N2              !  2.951d-3/Tgas**1.720d0
+
+CH2(S)+N2(v1)=>CH2+N2            !  2.491d-11*exp(-104.11d0/Tgas)
+CH2(S)+N2(v2)=>CH2+N2            !  2.491d-11
+CH2(S)+N2(v3)=>CH2+N2            !  2.491d-11
+CH2(S)+N2(v4)=>CH2+N2            !  2.491d-11
+CH2(S)+N2(v5)=>CH2+N2            !  2.491d-11
+CH2(S)+N2(v6)=>CH2+N2            !  2.491d-11
+CH2(S)+N2(v7)=>CH2+N2            !  2.491d-11
+CH2(S)+N2(v8)=>CH2+N2            !  2.491d-11
+
+CH2+N2(v1)=>CH2(S)+N2            !  9.585d-12*Tgas**0.020d0*exp(-1459.46d0/Tgas)
+CH2+N2(v2)=>CH2(S)+N2            !  9.585d-12*Tgas**0.020d0
+CH2+N2(v3)=>CH2(S)+N2            !  9.585d-12*Tgas**0.020d0
+CH2+N2(v4)=>CH2(S)+N2            !  9.585d-12*Tgas**0.020d0
+CH2+N2(v5)=>CH2(S)+N2            !  9.585d-12*Tgas**0.020d0
+CH2+N2(v6)=>CH2(S)+N2            !  9.585d-12*Tgas**0.020d0
+CH2+N2(v7)=>CH2(S)+N2            !  9.585d-12*Tgas**0.020d0
+CH2+N2(v8)=>CH2(S)+N2            !  9.585d-12*Tgas**0.020d0
+
+N2(v1)+O=>N+NO                   !  9.028d-11*Tgas**0.10d0*exp(-34647.1d0/Tgas)
+N2(v2)+O=>N+NO                   !  9.028d-11*Tgas**0.10d0*exp(-31305.0d0/Tgas)
+N2(v3)+O=>N+NO                   !  9.028d-11*Tgas**0.10d0*exp(-27975.0d0/Tgas)
+N2(v4)+O=>N+NO                   !  9.028d-11*Tgas**0.10d0*exp(-24632.9d0/Tgas)
+N2(v5)+O=>N+NO                   !  9.028d-11*Tgas**0.10d0*exp(-21290.8d0/Tgas)
+N2(v6)+O=>N+NO                   !  9.028d-11*Tgas**0.10d0*exp(-17948.7d0/Tgas)
+N2(v7)+O=>N+NO                   !  9.028d-11*Tgas**0.10d0*exp(-14606.6d0/Tgas)
+N2(v8)+O=>N+NO                   !  9.028d-11*Tgas**0.10d0*exp(-11271.7d0/Tgas)
+
+N2(v1)+O2=>N2O+O                 !  3.085d-16*Tgas**1.01d0*exp(-41764.1d0/Tgas)
+N2(v2)+O2=>N2O+O                 !  3.085d-16*Tgas**1.01d0*exp(-38758.6d0/Tgas)
+N2(v3)+O2=>N2O+O                 !  3.085d-16*Tgas**1.01d0*exp(-35741.1d0/Tgas)
+N2(v4)+O2=>N2O+O                 !  3.085d-16*Tgas**1.01d0*exp(-32723.6d0/Tgas)
+N2(v5)+O2=>N2O+O                 !  3.085d-16*Tgas**1.01d0*exp(-29706.1d0/Tgas)
+N2(v6)+O2=>N2O+O                 !  3.085d-16*Tgas**1.01d0*exp(-26700.6d0/Tgas)
+N2(v7)+O2=>N2O+O                 !  3.085d-16*Tgas**1.01d0*exp(-23683.1d0/Tgas)
+N2(v8)+O2=>N2O+O                 !  3.085d-16*Tgas**1.01d0*exp(-20665.6d0/Tgas)
+
+N2(v1)+OH=>N2O+H                 !  2.24d-16*Tgas**1.41d0*exp(-37412.1d0/Tgas)
+N2(v2)+OH=>N2O+H                 !  2.24d-16*Tgas**1.41d0*exp(-34671.2d0/Tgas)
+N2(v3)+OH=>N2O+H                 !  2.24d-16*Tgas**1.41d0*exp(-31930.2d0/Tgas)
+N2(v4)+OH=>N2O+H                 !  2.24d-16*Tgas**1.41d0*exp(-29177.1d0/Tgas)
+N2(v5)+OH=>N2O+H                 !  2.24d-16*Tgas**1.41d0*exp(-26436.2d0/Tgas)
+N2(v6)+OH=>N2O+H                 !  2.24d-16*Tgas**1.41d0*exp(-23695.2d0/Tgas)
+N2(v7)+OH=>N2O+H                 !  2.24d-16*Tgas**1.41d0*exp(-20942.1d0/Tgas)
+N2(v8)+OH=>N2O+H                 !  2.24d-16*Tgas**1.41d0*exp(-18201.2d0/Tgas)
+
+N2(v1)+HO2=>N2O+OH               !  1.221d-14*Tgas**0.56d0*exp(-21254.7d0/Tgas)
+N2(v2)+HO2=>N2O+OH               !  1.221d-14*Tgas**0.56d0*exp(-18946.5d0/Tgas)
+N2(v3)+HO2=>N2O+OH               !  1.221d-14*Tgas**0.56d0*exp(-16626.3d0/Tgas)
+N2(v4)+HO2=>N2O+OH               !  1.221d-14*Tgas**0.56d0*exp(-14306.1d0/Tgas)
+N2(v5)+HO2=>N2O+OH               !  1.221d-14*Tgas**0.56d0*exp(-11995.4d0/Tgas)
+N2(v6)+HO2=>N2O+OH               !  1.221d-14*Tgas**0.56d0*exp(-9678.8d0/Tgas)
+N2(v7)+HO2=>N2O+OH               !  1.221d-14*Tgas**0.56d0*exp(-7362.2d0/Tgas)
+N2(v8)+HO2=>N2O+OH               !  1.221d-14*Tgas**0.56d0*exp(-5046.8d0/Tgas)
+
+N2(v1)+H=>NH+N                   !  1.406d-9/Tgas**0.09d0*exp(-70183.8d0/Tgas)
+N2(v2)+H=>NH+N                   !  1.406d-9/Tgas**0.09d0*exp(-66829.7d0/Tgas)
+N2(v3)+H=>NH+N                   !  1.406d-9/Tgas**0.09d0*exp(-63475.6d0/Tgas)
+N2(v4)+H=>NH+N                   !  1.406d-9/Tgas**0.09d0*exp(-60121.5d0/Tgas)
+N2(v5)+H=>NH+N                   !  1.406d-9/Tgas**0.09d0*exp(-56767.4d0/Tgas)
+N2(v6)+H=>NH+N                   !  1.406d-9/Tgas**0.09d0*exp(-53425.3d0/Tgas)
+N2(v7)+H=>NH+N                   !  1.406d-9/Tgas**0.09d0*exp(-50071.2d0/Tgas)
+N2(v8)+H=>NH+N                   !  1.406d-9/Tgas**0.09d0*exp(-46717.1d0/Tgas)
+
+N2(v1)+OH=>NH+NO                 !  6.274d-11/Tgas**0.03d0*exp(-45683.2d0/Tgas)
+N2(v2)+OH=>NH+NO                 !  6.274d-11/Tgas**0.03d0*exp(-42329.1d0/Tgas)
+N2(v3)+OH=>NH+NO                 !  6.274d-11/Tgas**0.03d0*exp(-38963.0d0/Tgas)
+N2(v4)+OH=>NH+NO                 !  6.274d-11/Tgas**0.03d0*exp(-35608.9d0/Tgas)
+N2(v5)+OH=>NH+NO                 !  6.274d-11/Tgas**0.03d0*exp(-32242.7d0/Tgas)
+N2(v6)+OH=>NH+NO                 !  6.274d-11/Tgas**0.03d0*exp(-28888.6d0/Tgas)
+N2(v7)+OH=>NH+NO                 !  6.274d-11/Tgas**0.03d0*exp(-25534.5d0/Tgas)
+N2(v8)+OH=>NH+NO                 !  6.274d-11/Tgas**0.03d0*exp(-22168.4d0/Tgas)
+
+N2(v1)+H=>NNH                    !  8.535d-18*Tgas**0.64d0
+N2(v2)+H=>NNH                    !  8.535d-18*Tgas**0.64d0
+N2(v3)+H=>NNH                    !  8.535d-18*Tgas**0.64d0
+N2(v4)+H=>NNH                    !  8.535d-18*Tgas**0.64d0
+N2(v5)+H=>NNH                    !  8.535d-18*Tgas**0.64d0
+N2(v6)+H=>NNH                    !  8.535d-18*Tgas**0.64d0
+N2(v7)+H=>NNH                    !  8.535d-18*Tgas**0.64d0
+N2(v8)+H=>NNH                    !  8.535d-18*Tgas**0.64d0
+
+N2(v1)+H+ANY_NEUTRAL=>NNH+ANY_NEUTRAL !  5.584d-36*Tgas**0.53d0*exp(-3316.8d0/Tgas)
+N2(v2)+H+ANY_NEUTRAL=>NNH+ANY_NEUTRAL !  5.584d-36*Tgas**0.53d0*exp(-828.5d0/Tgas)
+N2(v3)+H+ANY_NEUTRAL=>NNH+ANY_NEUTRAL !  5.584d-36*Tgas**0.53d0
+N2(v4)+H+ANY_NEUTRAL=>NNH+ANY_NEUTRAL !  5.584d-36*Tgas**0.53d0
+N2(v5)+H+ANY_NEUTRAL=>NNH+ANY_NEUTRAL !  5.584d-36*Tgas**0.53d0
+N2(v6)+H+ANY_NEUTRAL=>NNH+ANY_NEUTRAL !  5.584d-36*Tgas**0.53d0
+N2(v7)+H+ANY_NEUTRAL=>NNH+ANY_NEUTRAL !  5.584d-36*Tgas**0.53d0
+N2(v8)+H+ANY_NEUTRAL=>NNH+ANY_NEUTRAL !  5.584d-36*Tgas**0.53d0
+
+HO2+N2(v1)=>NNH+O2              !  8.839d-12*Tgas**0.16d0*exp(-25149.8d0/Tgas)
+HO2+N2(v2)=>NNH+O2              !  8.839d-12*Tgas**0.16d0*exp(-21795.7d0/Tgas)
+HO2+N2(v3)=>NNH+O2              !  8.839d-12*Tgas**0.16d0*exp(-18453.6d0/Tgas)
+HO2+N2(v4)=>NNH+O2              !  8.839d-12*Tgas**0.16d0*exp(-15099.5d0/Tgas)
+HO2+N2(v5)=>NNH+O2              !  8.839d-12*Tgas**0.16d0*exp(-11746.6d0/Tgas)
+HO2+N2(v6)=>NNH+O2              !  8.839d-12*Tgas**0.16d0*exp(-8396.1d0/Tgas)
+HO2+N2(v7)=>NNH+O2              !  8.839d-12*Tgas**0.16d0*exp(-5045.6d0/Tgas)
+HO2+N2(v8)=>NNH+O2              !  8.839d-12*Tgas**0.16d0*exp(-1693.9d0/Tgas)
+
+OH+N2(v1)=>NNH+O                !  1.596d-12*Tgas**0.61d0*exp(-51489.8d0/Tgas)
+OH+N2(v2)=>NNH+O                !  1.596d-12*Tgas**0.61d0*exp(-48111.6d0/Tgas)
+OH+N2(v3)=>NNH+O                !  1.596d-12*Tgas**0.61d0*exp(-44733.5d0/Tgas)
+OH+N2(v4)=>NNH+O                !  1.596d-12*Tgas**0.61d0*exp(-41367.4d0/Tgas)
+OH+N2(v5)=>NNH+O                !  1.596d-12*Tgas**0.61d0*exp(-37989.2d0/Tgas)
+OH+N2(v6)=>NNH+O                !  1.596d-12*Tgas**0.61d0*exp(-34611.0d0/Tgas)
+OH+N2(v7)=>NNH+O                !  1.596d-12*Tgas**0.61d0*exp(-31244.9d0/Tgas)
+OH+N2(v8)=>NNH+O                !  1.596d-12*Tgas**0.61d0*exp(-27866.9d0/Tgas)
+
+H2+N2(v1)=>NNH+H                !  4.254d-12*Tgas**0.67d0*exp(-52403.5d0/Tgas)
+H2+N2(v2)=>NNH+H                !  4.254d-12*Tgas**0.67d0*exp(-49025.3d0/Tgas)
+H2+N2(v3)=>NNH+H                !  4.254d-12*Tgas**0.67d0*exp(-45647.1d0/Tgas)
+H2+N2(v4)=>NNH+H                !  4.254d-12*Tgas**0.67d0*exp(-42269.0d0/Tgas)
+H2+N2(v5)=>NNH+H                !  4.254d-12*Tgas**0.67d0*exp(-38890.8d0/Tgas)
+H2+N2(v6)=>NNH+H                !  4.254d-12*Tgas**0.67d0*exp(-35512.7d0/Tgas)
+H2+N2(v7)=>NNH+H                !  4.254d-12*Tgas**0.67d0*exp(-32134.5d0/Tgas)
+H2+N2(v8)=>NNH+H                !  4.254d-12*Tgas**0.67d0*exp(-28756.4d0/Tgas)
+
+H2O+N2(v1)=>NNH+OH              !  1.607d-10*Tgas**0.3d0*exp(-60554.3d0/Tgas)
+H2O+N2(v2)=>NNH+OH              !  1.607d-10*Tgas**0.3d0*exp(-57200.2d0/Tgas)
+H2O+N2(v3)=>NNH+OH              !  1.607d-10*Tgas**0.3d0*exp(-53858.1d0/Tgas)
+H2O+N2(v4)=>NNH+OH              !  1.607d-10*Tgas**0.3d0*exp(-50504.0d0/Tgas)
+H2O+N2(v5)=>NNH+OH              !  1.607d-10*Tgas**0.3d0*exp(-47161.9d0/Tgas)
+H2O+N2(v6)=>NNH+OH              !  1.607d-10*Tgas**0.3d0*exp(-43819.8d0/Tgas)
+H2O+N2(v7)=>NNH+OH              !  1.607d-10*Tgas**0.3d0*exp(-40465.7d0/Tgas)
+H2O+N2(v8)=>NNH+OH              !  1.607d-10*Tgas**0.3d0*exp(-37123.6d0/Tgas)
+
+CH4+N2(v1)=>NNH+CH3             !  5.402d-6/Tgas**0.73d0*exp(-54699.6d0/Tgas)
+CH4+N2(v2)=>NNH+CH3             !  5.402d-6/Tgas**0.73d0*exp(-51429.7d0/Tgas)
+CH4+N2(v3)=>NNH+CH3             !  5.402d-6/Tgas**0.73d0*exp(-48147.7d0/Tgas)
+CH4+N2(v4)=>NNH+CH3             !  5.402d-6/Tgas**0.73d0*exp(-44877.7d0/Tgas)
+CH4+N2(v5)=>NNH+CH3             !  5.402d-6/Tgas**0.73d0*exp(-41595.8d0/Tgas)
+CH4+N2(v6)=>NNH+CH3             !  5.402d-6/Tgas**0.73d0*exp(-38325.8d0/Tgas)
+CH4+N2(v7)=>NNH+CH3             !  5.402d-6/Tgas**0.73d0*exp(-35043.8d0/Tgas)
+CH4+N2(v8)=>NNH+CH3             !  5.402d-6/Tgas**0.73d0*exp(-31773.9d0/Tgas)
+
+N2(v1)+CO=>NCO+N                !  9.214d-15*Tgas**1.14d0*exp(-82241.8d0/Tgas)
+N2(v2)+CO=>NCO+N                !  9.214d-15*Tgas**1.14d0*exp(-78875.7d0/Tgas)
+N2(v3)+CO=>NCO+N                !  9.214d-15*Tgas**1.14d0*exp(-75509.5d0/Tgas)
+N2(v4)+CO=>NCO+N                !  9.214d-15*Tgas**1.14d0*exp(-72143.4d0/Tgas)
+N2(v5)+CO=>NCO+N                !  9.214d-15*Tgas**1.14d0*exp(-68777.3d0/Tgas)
+N2(v6)+CO=>NCO+N                !  9.214d-15*Tgas**1.14d0*exp(-65411.1d0/Tgas)
+N2(v7)+CO=>NCO+N                !  9.214d-15*Tgas**1.14d0*exp(-62045.0d0/Tgas)
+N2(v8)+CO=>NCO+N                !  9.214d-15*Tgas**1.14d0*exp(-58678.9d0/Tgas)
+
+N2(v1)+CO2=>NCO+NO              !  3.03d-4/Tgas**1.85d0*exp(-71350.0d0/Tgas)
+N2(v2)+CO2=>NCO+NO              !  3.03d-4/Tgas**1.85d0*exp(-68019.9d0/Tgas)
+N2(v3)+CO2=>NCO+NO              !  3.03d-4/Tgas**1.85d0*exp(-64689.8d0/Tgas)
+N2(v4)+CO2=>NCO+NO              !  3.03d-4/Tgas**1.85d0*exp(-61359.8d0/Tgas)
+N2(v5)+CO2=>NCO+NO              !  3.03d-4/Tgas**1.85d0*exp(-58041.7d0/Tgas)
+N2(v6)+CO2=>NCO+NO              !  3.03d-4/Tgas**1.85d0*exp(-54711.7d0/Tgas)
+N2(v7)+CO2=>NCO+NO              !  3.03d-4/Tgas**1.85d0*exp(-51381.6d0/Tgas)
+N2(v8)+CO2=>NCO+NO              !  3.03d-4/Tgas**1.85d0*exp(-48051.5d0/Tgas)
+
+N2(v1)+CH2=>H2CN+N              !  1.936d-14*Tgas**0.99d0*exp(-35488.6d0/Tgas)
+N2(v2)+CH2=>H2CN+N              !  1.936d-14*Tgas**0.99d0*exp(-32098.5d0/Tgas)
+N2(v3)+CH2=>H2CN+N              !  1.936d-14*Tgas**0.99d0*exp(-28696.3d0/Tgas)
+N2(v4)+CH2=>H2CN+N              !  1.936d-14*Tgas**0.99d0*exp(-25306.1d0/Tgas)
+N2(v5)+CH2=>H2CN+N              !  1.936d-14*Tgas**0.99d0*exp(-21903.9d0/Tgas)
+N2(v6)+CH2=>H2CN+N              !  1.936d-14*Tgas**0.99d0*exp(-18513.7d0/Tgas)
+N2(v7)+CH2=>H2CN+N              !  1.936d-14*Tgas**0.99d0*exp(-15111.5d0/Tgas)
+N2(v8)+CH2=>H2CN+N              !  1.936d-14*Tgas**0.99d0*exp(-11715.3d0/Tgas)
+
+C+N2(v1)=>CN+N                  !  1.046d-10*exp(-19752.0d0/Tgas)
+C+N2(v2)=>CN+N                  !  1.046d-10*exp(-16361.8d0/Tgas)
+C+N2(v3)=>CN+N                  !  1.046d-10*exp(-12971.6d0/Tgas)
+C+N2(v4)=>CN+N                  !  1.046d-10*exp(-9586.3d0/Tgas)
+C+N2(v5)=>CN+N                  !  1.046d-10*exp(-6196.1d0/Tgas)
+C+N2(v6)=>CN+N                  !  1.046d-10*exp(-2807.1d0/Tgas)
+C+N2(v7)=>CN+N                  !  1.046d-10
+C+N2(v8)=>CN+N                  !  1.046d-10
+
+CH+N2(v1)=>HCN+N                !  5.181d-15*Tgas**0.88*exp(-8385.3d0/Tgas)
+CH+N2(v2)=>HCN+N                !  5.181d-15*Tgas**0.88*exp(-6645.7d0/Tgas)
+CH+N2(v3)=>HCN+N                !  5.181d-15*Tgas**0.88*exp(-4906.1d0/Tgas)
+CH+N2(v4)=>HCN+N                !  5.181d-15*Tgas**0.88*exp(-3166.6d0/Tgas)
+CH+N2(v5)=>HCN+N                !  5.181d-15*Tgas**0.88*exp(-1425.8d0/Tgas)
+CH+N2(v6)=>HCN+N                !  5.181d-15*Tgas**0.88
+CH+N2(v7)=>HCN+N                !  5.181d-15*Tgas**0.88
+CH+N2(v8)=>HCN+N                !  5.181d-15*Tgas**0.88
+
+CH2+N2(v1)=>HCN+NH              !  1.661d-11*exp(-35236.2d0/Tgas)
+CH2+N2(v2)=>HCN+NH              !  1.661d-11*exp(-33252.6d0/Tgas)
+CH2+N2(v3)=>HCN+NH              !  1.661d-11*exp(-31281.0d0/Tgas)
+CH2+N2(v4)=>HCN+NH              !  1.661d-11*exp(-29297.4d0/Tgas)
+CH2+N2(v5)=>HCN+NH              !  1.661d-11*exp(-27313.8d0/Tgas)
+CH2+N2(v6)=>HCN+NH              !  1.661d-11*exp(-25330.1d0/Tgas)
+CH2+N2(v7)=>HCN+NH              !  1.661d-11*exp(-23346.5d0/Tgas)
+CH2+N2(v8)=>HCN+NH              !  1.661d-11*exp(-21362.9d0/Tgas)
+
+CH2(S)+N2(v1)=>NH+HCN           !  1.661d-13*exp(-30812.1d0/Tgas)
+CH2(S)+N2(v2)=>NH+HCN           !  1.661d-13*exp(-28936.7d0/Tgas)
+CH2(S)+N2(v3)=>NH+HCN           !  1.661d-13*exp(-27061.3d0/Tgas)
+CH2(S)+N2(v4)=>NH+HCN           !  1.661d-13*exp(-25185.9d0/Tgas)
+CH2(S)+N2(v5)=>NH+HCN           !  1.661d-13*exp(-23310.5d0/Tgas)
+CH2(S)+N2(v6)=>NH+HCN           !  1.661d-13*exp(-21435.0d0/Tgas)
+CH2(S)+N2(v7)=>NH+HCN           !  1.661d-13*exp(-19559.6d0/Tgas)
+CH2(S)+N2(v8)=>NH+HCN           !  1.661d-13*exp(-17684.2d0/Tgas)
+
+CO+H+N2(v1)=>HCNN+O             !  1.597d-40*Tgas**1.78d0*exp(-68548.9d0/Tgas)
+CO+H+N2(v2)=>HCNN+O             !  1.597d-40*Tgas**1.78d0*exp(-65158.7d0/Tgas)
+CO+H+N2(v3)=>HCNN+O             !  1.597d-40*Tgas**1.78d0*exp(-61780.5d0/Tgas)
+CO+H+N2(v4)=>HCNN+O             !  1.597d-40*Tgas**1.78d0*exp(-58390.4d0/Tgas)
+CO+H+N2(v5)=>HCNN+O             !  1.597d-40*Tgas**1.78d0*exp(-55012.2d0/Tgas)
+CO+H+N2(v6)=>HCNN+O             !  1.597d-40*Tgas**1.78d0*exp(-51634.1d0/Tgas)
+CO+H+N2(v7)=>HCNN+O             !  1.597d-40*Tgas**1.78d0*exp(-48243.9d0/Tgas)
+CO+H+N2(v8)=>HCNN+O             !  1.597d-40*Tgas**1.78d0*exp(-44865.7d0/Tgas)
+
+O+HCO+N2(v1)=>HCNN+O2           !  1.467d-41*Tgas**1.57*exp(-16686.4d0/Tgas)
+O+HCO+N2(v2)=>HCNN+O2           !  1.467d-41*Tgas**1.57*exp(-13260.2d0/Tgas)
+O+HCO+N2(v3)=>HCNN+O2           !  1.467d-41*Tgas**1.57*exp(-9830.3d0/Tgas)
+O+HCO+N2(v4)=>HCNN+O2           !  1.467d-41*Tgas**1.57*exp(-6402.9d0/Tgas)
+O+HCO+N2(v5)=>HCNN+O2           !  1.467d-41*Tgas**1.57*exp(-2975.4d0/Tgas)
+O+HCO+N2(v6)=>HCNN+O2           !  1.467d-41*Tgas**1.57
+O+HCO+N2(v7)=>HCNN+O2           !  1.467d-41*Tgas**1.57
+O+HCO+N2(v8)=>HCNN+O2           !  1.467d-41*Tgas**1.57
+
+H+HCO+N2(v1)=>HCNN+OH           !  5.586d-39*Tgas**1.16d0*exp(-25414.3d0/Tgas)
+H+HCO+N2(v2)=>HCNN+OH           !  5.586d-39*Tgas**1.16d0*exp(-22036.1d0/Tgas)
+H+HCO+N2(v3)=>HCNN+OH           !  5.586d-39*Tgas**1.16d0*exp(-18646.0d0/Tgas)
+H+HCO+N2(v4)=>HCNN+OH           !  5.586d-39*Tgas**1.16d0*exp(-15267.8d0/Tgas)
+H+HCO+N2(v5)=>HCNN+OH           !  5.586d-39*Tgas**1.16d0*exp(-11889.7d0/Tgas)
+H+HCO+N2(v6)=>HCNN+OH           !  5.586d-39*Tgas**1.16d0*exp(-8509.1d0/Tgas)
+H+HCO+N2(v7)=>HCNN+OH           !  5.586d-39*Tgas**1.16d0*exp(-5129.7d0/Tgas)
+H+HCO+N2(v8)=>HCNN+OH           !  5.586d-39*Tgas**1.16d0*exp(-1749.2d0/Tgas)
+
+CH2+N2(v1)=>HCNN+H              !  8.63d-16*Tgas**1.45d0*exp(-30920.3d0/Tgas)
+CH2+N2(v2)=>HCNN+H              !  8.63d-16*Tgas**1.45d0*exp(-27542.2d0/Tgas)
+CH2+N2(v3)=>HCNN+H              !  8.63d-16*Tgas**1.45d0*exp(-24164.0d0/Tgas)
+CH2+N2(v4)=>HCNN+H              !  8.63d-16*Tgas**1.45d0*exp(-20785.9d0/Tgas)
+CH2+N2(v5)=>HCNN+H              !  8.63d-16*Tgas**1.45d0*exp(-17395.7d0/Tgas)
+CH2+N2(v6)=>HCNN+H              !  8.63d-16*Tgas**1.45d0*exp(-14017.5d0/Tgas)
+CH2+N2(v7)=>HCNN+H              !  8.63d-16*Tgas**1.45d0*exp(-10638.2d0/Tgas)
+CH2+N2(v8)=>HCNN+H              !  8.63d-16*Tgas**1.45d0*exp(-7257.6d0/Tgas)
+
+#-----------------------------------------------------------------------
+#
+# chemical reaction of O2(v)
+#
+#-----------------------------------------------------------------------
+
+# calculated by theory in A. Fridman, Plasma chemistry, Cambridge University Press, New York, 2008.
+O2(v1)+ANY_NEUTRAL=>O+O+ANY_NEUTRAL  !  1.873d-4/Tgas**1.44d0*exp(-57981.6d0/Tgas)
+O2(v2)+ANY_NEUTRAL=>O+O+ANY_NEUTRAL  !  1.873d-4/Tgas**1.44d0*exp(-55721.5d0/Tgas)
+O2(v3)+ANY_NEUTRAL=>O+O+ANY_NEUTRAL  !  1.873d-4/Tgas**1.44d0*exp(-53461.4d0/Tgas)
+O2(v4)+ANY_NEUTRAL=>O+O+ANY_NEUTRAL  !  1.873d-4/Tgas**1.44d0*exp(-51201.3d0/Tgas)
+
+OH+O2(v1)=>O+HO2                !  1.199d-12*Tgas**0.45d0*exp(-24055.8d0/Tgas)
+OH+O2(v2)=>O+HO2                !  1.199d-12*Tgas**0.45d0*exp(-21747.6d0/Tgas)
+OH+O2(v3)=>O+HO2                !  1.199d-12*Tgas**0.45d0*exp(-19451.4d0/Tgas)
+OH+O2(v4)=>O+HO2                !  1.199d-12*Tgas**0.45d0*exp(-17143.2d0/Tgas)
+
+O2(v1)+CO=>O+CO2                !  4.151d-12*exp(-22997.9d0/Tgas)
+O2(v2)+CO=>O+CO2                !  4.151d-12*exp(-21952.0d0/Tgas)
+O2(v3)+CO=>O+CO2                !  4.151d-12*exp(-20894.1d0/Tgas)
+O2(v4)+CO=>O+CO2                !  4.151d-12*exp(-19848.2d0/Tgas)
+
+O2(v1)+CH2O=>HO2+HCO            !  1.661d-10*exp(-17900.6d0/Tgas)
+O2(v2)+CH2O=>HO2+HCO            !  1.661d-10*exp(-15688.6d0/Tgas)
+O2(v3)+CH2O=>HO2+HCO            !  1.661d-10*exp(-13464.5d0/Tgas)
+O2(v4)+CH2O=>HO2+HCO            !  1.661d-10*exp(-11252.5d0/Tgas)
+
+HO2+O2(v1)=>H+O2+O2             !  2.361d-3/Tgas**1.72d0*exp(-22973.8d0/Tgas)
+HO2+O2(v2)=>H+O2+O2             !  2.361d-3/Tgas**1.72d0*exp(-20749.8d0/Tgas)
+HO2+O2(v3)=>H+O2+O2             !  2.361d-3/Tgas**1.72d0*exp(-18513.7d0/Tgas)
+HO2+O2(v4)=>H+O2+O2             !  2.361d-3/Tgas**1.72d0*exp(-16289.7d0/Tgas)
+
+H+O2(v1)=>O+OH                  !  4.4d-8/Tgas**0.67d0*exp(-6323.5d0/Tgas)
+H+O2(v2)=>O+OH                  !  4.4d-8/Tgas**0.67d0*exp(-4075.4d0/Tgas)
+H+O2(v3)=>O+OH                  !  4.4d-8/Tgas**0.67d0*exp(-1826.1d0/Tgas)
+H+O2(v4)=>O+OH                  !  4.4d-8/Tgas**0.67d0
+
+O2(v1)+H2=>H+HO2                !  3.58d-12*Tgas**0.51d0*exp(-25546.5d0/Tgas)
+O2(v2)+H2=>H+HO2                !  3.58d-12*Tgas**0.51d0*exp(-23286.4d0/Tgas)
+O2(v3)+H2=>H+HO2                !  3.58d-12*Tgas**0.51d0*exp(-21014.3d0/Tgas)
+O2(v4)+H2=>H+HO2                !  3.58d-12*Tgas**0.51d0*exp(-18754.2d0/Tgas)
+
+O2(v1)+H2O=>OH+HO2              !  1.095d-10*Tgas**0.14d0*exp(-32867.9d0/Tgas)+3.774d-8*Tgas**0.14d0*exp(-42220.9d0/Tgas)
+O2(v2)+H2O=>OH+HO2              !  1.095d-10*Tgas**0.14d0*exp(-30583.7d0/Tgas)+3.774d-8*Tgas**0.14d0*exp(-40321.4d0/Tgas)
+O2(v3)+H2O=>OH+HO2              !  1.095d-10*Tgas**0.14d0*exp(-28299.5d0/Tgas)+3.774d-8*Tgas**0.14d0*exp(-38434.0d0/Tgas)
+O2(v4)+H2O=>OH+HO2              !  1.095d-10*Tgas**0.14d0*exp(-26015.4d0/Tgas)+3.774d-8*Tgas**0.14d0*exp(-36534.5d0/Tgas)
+
+O2(v1)+H2O2=>2HO2               ! 3.748d-12/Tgas**0.12d0*exp(-16049.2d0/Tgas)+1.211d-8/Tgas**0.12d0*exp(-23454.7d0/Tgas)
+O2(v2)+H2O2=>2HO2               ! 3.748d-12/Tgas**0.12d0*exp(-13656.9d0/Tgas)+1.211d-8/Tgas**0.12d0*exp(-21615.4d0/Tgas)
+O2(v3)+H2O2=>2HO2               ! 3.748d-12/Tgas**0.12d0*exp(-11270.5d0/Tgas)+1.211d-8/Tgas**0.12d0*exp(-19776.0d0/Tgas)
+O2(v4)+H2O2=>2HO2               ! 3.748d-12/Tgas**0.12d0*exp(-8881.78d0/Tgas)+1.211d-8/Tgas**0.12d0*exp(-17936.7d0/Tgas)
+
+O2(v1)+CH4=>HO2+CH3             !  2.029d-7/Tgas**0.89d0*exp(-27301.7d0/Tgas)
+O2(v2)+CH4=>HO2+CH3             !  2.029d-7/Tgas**0.89d0*exp(-25125.8d0/Tgas)
+O2(v3)+CH4=>HO2+CH3             !  2.029d-7/Tgas**0.89d0*exp(-22949.8d0/Tgas)
+O2(v4)+CH4=>HO2+CH3             !  2.029d-7/Tgas**0.89d0*exp(-20785.9d0/Tgas)
+
+C+O2(v1)=>O+CO                  !  9.631d-11*exp(-280.4d0/Tgas)
+C+O2(v2)=>O+CO                  !  9.631d-11*exp(-271.0d0/Tgas)
+C+O2(v3)=>O+CO                  !  9.631d-11*exp(-261.5d0/Tgas)
+C+O2(v4)=>O+CO                  !  9.631d-11*exp(-252.1d0/Tgas)
+
+CH2+O2(v1)=>OH+H+CO             !  8.303d-12*exp(-699.2d0/Tgas)
+CH2+O2(v2)=>OH+H+CO             !  8.303d-12*exp(-643.9d0/Tgas)
+CH2+O2(v3)=>OH+H+CO             !  8.303d-12*exp(-588.6d0/Tgas)
+CH2+O2(v4)=>OH+H+CO             !  8.303d-12*exp(-533.4d0/Tgas)
+
+CH3+O2(v1)=>O+CH3O              !  5.912d-11*exp(-13212.1d0/Tgas)
+CH3+O2(v2)=>O+CH3O              !  5.912d-11*exp(-11084.2d0/Tgas)
+CH3+O2(v3)=>O+CH3O              !  5.912d-11*exp(-8958.7d0/Tgas)
+CH3+O2(v4)=>O+CH3O              !  5.912d-11*exp(-6836.9d0/Tgas)
+
+CH3+O2(v1)=>OH+CH2O             !  3.836d-12*exp(-9717.3d0/Tgas)
+CH3+O2(v2)=>OH+CH2O             !  3.836d-12*exp(-9217.2d0/Tgas)
+CH3+O2(v3)=>OH+CH2O             !  3.836d-12*exp(-8717.1d0/Tgas)
+CH3+O2(v4)=>OH+CH2O             !  3.836d-12*exp(-8217.0d0/Tgas)
+
+HCO+O2(v1)=>HO2+CO              !  2.233d-11*exp(-174.7d0/Tgas)
+HCO+O2(v2)=>HO2+CO              !  2.233d-11*exp(-148.1d0/Tgas)
+HCO+O2(v3)=>HO2+CO              !  2.233d-11*exp(-121.5d0/Tgas)
+HCO+O2(v4)=>HO2+CO              !  2.233d-11*exp(-95.1d0/Tgas)
+
+CH2OH+O2(v1)=>HO2+CH2O          !  2.989d-11*exp(-356.4d0/Tgas)
+CH2OH+O2(v2)=>HO2+CH2O          !  2.989d-11*exp(-260.3d0/Tgas)
+CH2OH+O2(v3)=>HO2+CH2O          !  2.989d-11*exp(-164.0d0/Tgas)
+CH2OH+O2(v4)=>HO2+CH2O          !  2.989d-11*exp(-67.8d0/Tgas)
+
+C2H3+O2(v1)=>HCO+CH2O           !  7.605d-8/Tgas**1.39d0*exp(-484.7d0/Tgas)
+C2H3+O2(v2)=>HCO+CH2O           !  7.605d-8/Tgas**1.39d0*exp(-459.0d0/Tgas)
+C2H3+O2(v3)=>HCO+CH2O           !  7.605d-8/Tgas**1.39d0*exp(-433.3d0/Tgas)
+C2H3+O2(v4)=>HCO+CH2O           !  7.605d-8/Tgas**1.39d0*exp(-407.5d0/Tgas)
+
+C2H5+O2(v1)=>HO2+C2H4           !  1.395d-12*exp(-1520.8d0/Tgas)
+C2H5+O2(v2)=>HO2+C2H4           !  1.395d-12*exp(-1092.6d0/Tgas)
+C2H5+O2(v3)=>HO2+C2H4           !  1.395d-12*exp(-664.1d0/Tgas)
+C2H5+O2(v4)=>HO2+C2H4           !  1.395d-12*exp(-236.1d0/Tgas)
+
+HCCO+O2(v1)=>OH+CO+CO           !  5.314d-12*exp(-407.4d0/Tgas)
+HCCO+O2(v2)=>OH+CO+CO           !  5.314d-12*exp(-385.2d0/Tgas)
+HCCO+O2(v3)=>OH+CO+CO           !  5.314d-12*exp(-363.1d0/Tgas)
+HCCO+O2(v4)=>OH+CO+CO           !  5.314d-12*exp(-340.8d0/Tgas)
+
+N+O2(v1)=>NO+O                  !  1.494d-14*Tgas*exp(-2938.2d0/Tgas)
+N+O2(v2)=>NO+O                  !  1.494d-14*Tgas*exp(-2607.5d0/Tgas)
+N+O2(v3)=>NO+O                  !  1.494d-14*Tgas*exp(-2275.7d0/Tgas)
+N+O2(v4)=>NO+O                  !  1.494d-14*Tgas*exp(-1945.1d0/Tgas)
+
+N2+O2(v1)=>N2O+O                !  3.085d-16*Tgas**1.01d0*exp(-42737.8d0/Tgas)
+N2+O2(v2)=>N2O+O                !  3.085d-16*Tgas**1.01d0*exp(-40694.1d0/Tgas)
+N2+O2(v3)=>N2O+O                !  3.085d-16*Tgas**1.01d0*exp(-38650.4d0/Tgas)
+N2+O2(v4)=>N2O+O                !  3.085d-16*Tgas**1.01d0*exp(-36606.7d0/Tgas)
+
+NO+O2(v1)=>NO2+O                !  2.079d-14*Tgas**0.56d0*exp(-20425.2d0/Tgas)
+NO+O2(v2)=>NO2+O                !  2.079d-14*Tgas**0.56d0*exp(-18117.0d0/Tgas)
+NO+O2(v3)=>NO2+O                !  2.079d-14*Tgas**0.56d0*exp(-15808.8d0/Tgas)
+NO+O2(v4)=>NO2+O                !  2.079d-14*Tgas**0.56d0*exp(-13500.6d0/Tgas)
+
+NH+O2(v1)=>HNO+O                !  7.655d-19*Tgas**2.0d0*exp(-2163.9d0/Tgas)
+NH+O2(v2)=>HNO+O                !  7.655d-19*Tgas**2.0d0*exp(-1057.3d0/Tgas)
+NH+O2(v3)=>HNO+O                !  7.655d-19*Tgas**2.0d0
+NH+O2(v4)=>HNO+O                !  7.655d-19*Tgas**2.0d0
+
+NH+O2(v1)=>NO+OH                !  2.125d-18*Tgas**1.5d0*exp(-46.2d0/Tgas)
+NH+O2(v2)=>NO+OH                !  2.125d-18*Tgas**1.5d0*exp(-42.0d0/Tgas)
+NH+O2(v3)=>NO+OH                !  2.125d-18*Tgas**1.5d0*exp(-37.7d0/Tgas)
+NH+O2(v4)=>NO+OH                !  2.125d-18*Tgas**1.5d0*exp(-33.5d0/Tgas)
+
+HNO+O2(v1)=>HO2+NO              !  1.661d-11*exp(-5427.9d0/Tgas)
+HNO+O2(v2)=>HO2+NO              !  1.661d-11*exp(-4315.9d0/Tgas)
+HNO+O2(v3)=>HO2+NO              !  1.661d-11*exp(-3203.8d0/Tgas)
+HNO+O2(v4)=>HO2+NO              !  1.661d-11*exp(-2094.2d0/Tgas)
+
+NCO+O2(v1)=>NO+CO2              !  3.321d-12*exp(-9743.7d0/Tgas)
+NCO+O2(v2)=>NO+CO2              !  3.321d-12*exp(-9427.6d0/Tgas)
+NCO+O2(v3)=>NO+CO2              !  3.321d-12*exp(-9110.2d0/Tgas)
+NCO+O2(v4)=>NO+CO2              !  3.321d-12*exp(-8795.2d0/Tgas)
+
+CH2+O2(v1)=>2H+CO2              !  9.631d-12*exp(-715.1d0/Tgas)
+CH2+O2(v2)=>2H+CO2              !  9.631d-12*exp(-675.8d0/Tgas)
+CH2+O2(v3)=>2H+CO2              !  9.631d-12*exp(-636.4d0/Tgas)
+CH2+O2(v4)=>2H+CO2              !  9.631d-12*exp(-597.0d0/Tgas)
+
+CH2+O2(v1)=>O+CH2O              !  3.985d-12*exp(-700.5d0/Tgas)
+CH2+O2(v2)=>O+CH2O              !  3.985d-12*exp(-646.5d0/Tgas)
+CH2+O2(v3)=>O+CH2O              !  3.985d-12*exp(-592.6d0/Tgas)
+CH2+O2(v4)=>O+CH2O              !  3.985d-12*exp(-538.6d0/Tgas)
+
+C2H3+O2(v1)=>O+CH2CHO           !  5.031d-13*Tgas**0.29d0*exp(-1.4d0/Tgas)
+C2H3+O2(v2)=>O+CH2CHO           !  5.031d-13*Tgas**0.29d0
+C2H3+O2(v3)=>O+CH2CHO           !  5.031d-13*Tgas**0.29d0
+C2H3+O2(v4)=>O+CH2CHO           !  5.031d-13*Tgas**0.29d0
+
+O2(v1)+CH3CHO=>HO2+CH3+CO       !  4.998d-11*exp(-16385.8d0/Tgas)
+O2(v2)+CH3CHO=>HO2+CH3+CO       !  4.998d-11*exp(-13067.8d0/Tgas)
+O2(v3)+CH3CHO=>HO2+CH3+CO       !  4.998d-11*exp(-9763.0d0/Tgas)
+O2(v4)+CH3CHO=>HO2+CH3+CO       !  4.998d-11*exp(-6454.6d0/Tgas)
+
+O2(v1)+C3H8=>HO2+C3H7           !  2.972d-10/Tgas**0.19d0*exp(-23851.4d0/Tgas)
+O2(v2)+C3H8=>HO2+C3H7           !  2.972d-10/Tgas**0.19d0*exp(-21579.3d0/Tgas)
+O2(v3)+C3H8=>HO2+C3H7           !  2.972d-10/Tgas**0.19d0*exp(-19307.2d0/Tgas)
+O2(v4)+C3H8=>HO2+C3H7           !  2.972d-10/Tgas**0.19d0*exp(-17047.1d0/Tgas)
+
+#-----------------------------------------------------------------------
+#
+# chemical reaction of CH4(v)
+#
+#-----------------------------------------------------------------------
+
+# calculated by theory in A. Fridman, Plasma chemistry, Cambridge University Press, New York, 2008.
+O+CH4(v24)=>OH+CH3              !  1.694d-15*Tgas**1.5d0*exp(-3206.25d0/Tgas)
+O+CH4(v13)=>OH+CH3              !  1.694d-15*Tgas**1.5d0*exp(-1828.68d0/Tgas)
+
+H+CH4(v24)=>CH3+H2              !  1.096d-15*Tgas**1.62d0*exp(-4477.62d0/Tgas)
+H+CH4(v13)=>CH3+H2              !  1.096d-15*Tgas**1.62d0*exp(-3277.14d0/Tgas)
+
+OH+CH4(v24)=>CH3+H2O            !  1.661d-16*Tgas**1.6d0*exp(-1284.08d0/Tgas)
+OH+CH4(v13)=>CH3+H2O            !  1.661d-16*Tgas**1.6d0*exp(-932.81d0/Tgas)
+
+CH2+CH4(v24)=>2CH3              !  4.085d-18*Tgas**2.0d0*exp(-3463.52d0/Tgas)
+CH2+CH4(v13)=>2CH3              !  4.085d-18*Tgas**2.0d0*exp(-2605.98d0/Tgas)
+
+HCO+CH4(v24)=>H+CO+CH4          !  6.21d-7/Tgas*exp(-6814.13d0/Tgas)
+HCO+CH4(v13)=>H+CO+CH4          !  6.21d-7/Tgas*exp(-4675.99d0/Tgas)
+
+NNH+CH4(v24)=>N2+H+CH4          !  4.317d-10/Tgas**0.11d0*exp(-1971.08d0/Tgas)
+NNH+CH4(v13)=>N2+H+CH4          !  4.317d-10/Tgas**0.11d0*exp(-1313.95d0/Tgas)
+
+H+NO+CH4(v24)=>HNO+CH4          !  2.471d-28/Tgas**1.32d0*exp(-344.57d0/Tgas)
+H+NO+CH4(v13)=>HNO+CH4          !  2.471d-28/Tgas**1.32d0*exp(-310.41d0/Tgas)
+
+NCO+CH4(v24)=>N+CO+CH4          !  1.03d-9*exp(-25319.88d0/Tgas)
+NCO+CH4(v13)=>N+CO+CH4          !  1.03d-9*exp(-23011.61d0/Tgas)
+
+HCN+CH4(v24)=>H+CN+CH4          !  3.454d5/Tgas**3.3d0*exp(-61841.90d0/Tgas)
+HCN+CH4(v13)=>H+CN+CH4          !  3.454d5/Tgas**3.3d0*exp(-59550.20d0/Tgas)
+
+HNCO+CH4(v24)=>NH+CO+CH4        !  3.919d-8*exp(-40753.60d0/Tgas)
+HNCO+CH4(v13)=>NH+CO+CH4        !  3.919d-8*exp(-38445.33d0/Tgas)
+
+O2+CH4(v24)=>2O+CH4             !  9.133d-5/Tgas**1.28d0*exp(-58058.30d0/Tgas)
+O2+CH4(v13)=>2O+CH4             !  9.133d-5/Tgas**1.28d0*exp(-55750.03d0/Tgas)
+
+OH+CH4(v24)=>O+H+CH4            !  1.411d-6/Tgas**0.9d0*exp(-49576.30d0/Tgas)
+OH+CH4(v13)=>O+H+CH4            !  1.411d-6/Tgas**0.9d0*exp(-47268.02d0/Tgas)
+
+H2+CH4(v24)=>2H+CH4             !  8.718d-6/Tgas**0.95d0*exp(-50558.97d0/Tgas)
+H2+CH4(v13)=>2H+CH4             !  8.718d-6/Tgas**0.95d0*exp(-48250.70d0/Tgas)
+
+H2O+CH4(v24)=>H+OH+CH4          !  8.303d-1/Tgas**1.95d0*exp(-58157.10d0/Tgas)
+H2O+CH4(v13)=>H+OH+CH4          !  8.303d-1/Tgas**1.95d0*exp(-55848.82d0/Tgas)
+
+CH4(v24)+O2=>HO2+CH3            !  2.029d-7/Tgas**0.89d0*exp(-27598.60d0/Tgas)
+CH4(v13)+O2=>HO2+CH3            !  2.029d-7/Tgas**0.89d0*exp(-25290.32d0/Tgas)
+
+HO2+CH4(v24)=>CH3+H2O2          !  2.152d-19*Tgas**2.58d0*exp(-9865.42d0/Tgas)
+HO2+CH4(v13)=>CH3+H2O2          !  2.152d-19*Tgas**2.58d0*exp(-7986.89d0/Tgas)
+
+CH4(v24)+CO=>CH3+HCO            !  4.483d-9*exp(-43106.11d0/Tgas)
+CH4(v13)+CO=>CH3+HCO            !  4.483d-9*exp(-40797.84d0/Tgas)
+
+HCO+CH4(v24)=>CH3+CH2O          !  3.989d-20*Tgas**2.61d0*exp(-9983.51d0/Tgas) 
+HCO+CH4(v13)=>CH3+CH2O          !  3.989d-20*Tgas**2.61d0*exp(-8147.03d0/Tgas)  
+
+CH2OH+CH4(v24)=>CH3+CH3OH       !  5.762d-16*Tgas**1.2d0*exp(-8015.24d0/Tgas)
+CH2OH+CH4(v13)=>CH3+CH3OH       !  5.762d-16*Tgas**1.2d0*exp(-6518.00d0/Tgas)
+
+CH3O+CH4(v24)=>CH3+CH3OH        !  1.107d-15*Tgas**1.29d0*exp(-4528.61d0/Tgas)
+CH3O+CH4(v13)=>CH3+CH3OH        !  1.107d-15*Tgas**1.29d0*exp(-3318.29d0/Tgas)
+ 
+C2H3+CH4(v24)=>CH3+C2H4         !  5.364d-19*Tgas**1.87d0*exp(-1066.18d0/Tgas)
+C2H3+CH4(v13)=>CH3+C2H4         !  5.364d-19*Tgas**1.87d0*exp(-491.75d0/Tgas)
+
+C2H5+CH4(v24)=>CH3+C2H6         !  5.638d-18*Tgas**1.7d0*exp(-6354.44d0/Tgas)
+C2H5+CH4(v13)=>CH3+C2H6         !  5.638d-18*Tgas**1.7d0*exp(-5075.38d0/Tgas)
+
+NO2+CH4(v24)=>NO+O+CH4          !  2.491d0/Tgas**1.96d0*exp(-34953.73d0/Tgas) 
+NO2+CH4(v13)=>NO+O+CH4          !  2.491d0/Tgas**1.96d0*exp(-32645.45d0/Tgas)
+
+CH4(v24)+N2=>NNH+CH3            !  9.299d-9*exp(-54770.91d0/Tgas)
+CH4(v13)+N2=>NNH+CH3            !  9.299d-9*exp(-52462.63d0/Tgas)
+
+CH3+CH4(v24)+CO=>CH3+CH3CHO     !  3.64d-47*Tgas**3.07d0*exp(-4057.59d0/Tgas)
+CH3+CH4(v13)+CO=>CH3+CH3CHO     !  3.64d-47*Tgas**3.07d0*exp(-2584.24d0/Tgas)
+
+CH4(v24)+C3H7=>CH3+C3H8         !  1.554d-24*Tgas**3.51d0*exp(-4513.44d0/Tgas)
+CH4(v13)+C3H7=>CH3+C3H8         !  1.554d-24*Tgas**3.51d0*exp(-3102.35d0/Tgas) 
+
+H+CO+CH4(v24)=>HCO+CH4          !  2.068d-31/Tgas**0.77d0*exp(-542.22d0/Tgas)
+H+CO+CH4(v13)=>HCO+CH4          !  2.068d-31/Tgas**0.77d0*exp(-372.08d0/Tgas)
+ 
+N2+H+CH4(v24)=>NNH+CH4          !  1.955d-34*Tgas**0.19d0*exp(-4952.67d0/Tgas) 
+N2+H+CH4(v13)=>NNH+CH4          !  1.955d-34*Tgas**0.19d0*exp(-3301.53d0/Tgas) 
+
+HNO+CH4(v24)=>H+NO+CH4          !  7.472d-3/Tgas**1.59d0*exp(-22936.80d0/Tgas)
+HNO+CH4(v13)=>H+NO+CH4          !  7.472d-3/Tgas**1.59d0*exp(-20662.69d0/Tgas)
+
+H+CN+CH4(v24)=>HCN+CH4          !  4.136d-22/Tgas**2.71d0*exp(-447.26d0/Tgas)
+H+CN+CH4(v13)=>HCN+CH4          !  4.136d-22/Tgas**2.71d0*exp(-430.69d0/Tgas)
+
+#-----------------------------------------------------------------------
+#
+# optical transitions and predissociation
+#
+#-----------------------------------------------------------------------
+
+# M. Capitelli, et al, Plasma Kinetics in Atmospheric Gases, Springer-Verlag, Berlin, Heidelberg, New York.
+N2(A) => N2                        !  0.50d0
+N2(B) => N2(A)                     !  1.34d5
+N2(a') => N2                       !  1.0d2
+N2(C) => N2(B)                     !  2.45d7
+
+O2(a1) => O2                       !  2.6d-4
+O2(b1) => O2(a1)                   !  1.5d-3
+O2(b1) => O2                       !  8.5d-2
+O2* => O2                          !  11.0d0
+
+# A. Starikovskiy, N. Aleksandrov, Mechanism of Plasma-Assisted Ignition for H2 and C1-C5 Hydrocarbons, 55th AIAA Aerospace Sciences Meeting, 2017.
+O(1D) => O                         !   7.0d-3
+O(1S) => O                         !   1.25d0
+
+#-----------------------------------------------------------------------
+#
+# quenching of excited states of N2
+#
+#-----------------------------------------------------------------------
+
+# reactions of N2(A)
+# M. Capitelli, et al, Plasma Kinetics in Atmospheric Gases, Springer-Verlag, Berlin, Heidelberg, New York.
+N2(A) + O => N2 + O(1S)            !  2.1d-11    
+N2(A) + N => N2 + N                !  2.0d-12
+N2(A) + O2 => N2 + O + O(1D)       !  2.1d-12*(Tgas/300.0d0)**0.55
+N2(A) + O2 => N2 + O2(a1)          !  2.0d-13*(Tgas/300.0d0)**0.55
+N2(A) + O2 => N2 + O2(b1)          !  2.0d-13*(Tgas/300.0d0)**0.55     
+N2(A) + O2 => N2O + O              !  2.0d-14*(Tgas/300.0d0)**0.55
+N2(A) + N2 => N2 + N2              !  3.0d-16 
+N2(A) + NO => N2 + NO              !  6.9d-11
+N2(A) + N2O => N2 + N + NO         !  1.0d-11
+N2(A) + NO2 => N2 + O + NO         !  1.0d-12
+N2(A) + N2(A) => N2 + N2(B)        !  3.0d-10
+N2(A) + N2(A) => N2 + N2(C)        !  1.5d-10
+N2(A) + H2O => N2 + H + OH         !  5.0d-14
+N2(A) + OH => N2 + O + H           !  1.0d-10
+N2(A) + H => N2 + H                !  2.1d-10
+N2(A) + H2 => N2 + H + H           !  2.0d-10*exp(-3500.0d0/Tgas)
+# N.L. Aleksandrov, et al, Plasma Phys. Rep+, 35 (2009) 867-882.
+N2(A) + CH4 => N2 + CH4            !  3.0d-15   
+
+# reactions of N2(B)
+# M. Capitelli, et al, Plasma Kinetics in Atmospheric Gases, Springer-Verlag, Berlin, Heidelberg, New York.
+N2(B) + N2 => N2(A) + N2           !  3.0d-11
+N2(B) + N2 => N2 + N2              !  2.0d-12
+N2(B) + O2 => N2 + O + O           !  3.0d-10
+N2(B) + NO => N2(A) + NO           !  2.4d-10
+N2(B) + H2 => N2(A) + H2           !  2.5d-11
+# N.L. Aleksandrov, et al, Plasma Phys. Rep+, 35 (2009) 867-882.
+N2(B) + CH4 => N2(A) + CH4         !  2.85d-10 
+N2(B) + CH4 => N2 + CH3 + H        !  1.5d-11
+
+# Reactions of N2(a')
+# M. Capitelli, et al, Plasma Kinetics in Atmospheric Gases, Springer-Verlag, Berlin, Heidelberg, New York.
+N2(a') + N2 => N2(B) + N2          !  1.9d-13
+N2(a') + O2 => N2 + O + O          !  2.8d-11
+N2(a') + NO => N2 + N + O          !  3.6d-10
+N2(a') + H => N2 + H               !  1.5d-10
+N2(a') + H2 => N2 + H + H          !  2.6d-11
+# N.L. Aleksandrov, et al, Plasma Phys. Rep+, 35 (2009) 867-882.
+N2(a') + CH4 => N2 + CH3 + H       !  3.0d-10 
+
+# reactions of N2(C)
+# M. Capitelli, et al, Plasma Kinetics in Atmospheric Gases, Springer-Verlag, Berlin, Heidelberg, New York.
+N2(C) + N2 => N2(a') + N2          !  1.0d-11
+N2(C) + O2 => N2 + O + O(1S)       !  3.0d-10
+# M. Uddi, et al, J. Phys. D: Appl. Phys., 42 (2009) 075205.
+N2(C) + CH4 => N2 + CH3 + H        !  5.0d-10 
+
+#-----------------------------------------------------------------------
+#
+# formation of excited states of N2
+#
+#-----------------------------------------------------------------------
+
+# M. Capitelli, et al, Plasma Kinetics in Atmospheric Gases, Springer-Verlag, Berlin, Heidelberg, New York.
+N + N + @M => N2(A) + @M           !  @R
+    @M = N2       O2       NO       N        O
+    @R = 1.7d-33  1.7d-33  1.7d-33  1.0d-32  1.0d-32
+
+N + N + @M => N2(B) + @M           !  @R
+    @M = N2       O2       NO       N        O
+    @R = 2.4d-33  2.4d-33  2.4d-33  1.4d-32  1.4d-32
+
+#-----------------------------------------------------------------------
+#
+# quenching of excited states of O2
+#
+#-----------------------------------------------------------------------
+
+# reactions of O2(a1)
+# M. Capitelli, et al, Plasma Kinetics in Atmospheric Gases, Springer-Verlag, Berlin, Heidelberg, New York.
+O2(a1) + O => O2 + O                          !  7.0d-16
+O2(a1) + N  => NO + O                         !  2.0d-14*exp(-600.0d0/Tgas)
+O2(a1) + O2 => O2 + O2                        !  3.8d-18*exp(-205.0d0/Tgas)
+O2(a1) + N2 => O2 + N2                        !  3.0d-21
+O2(a1) + NO => O2 + NO                        !  2.5d-11
+O2(a1) + O2(a1) => O2 + O2(b1)                !  7.0d-28*Tgas**3.8d0*exp(700.0d0/Tgas) 
+# A. Hicks et al, J. Phys. D: Appl. Phys. 38 (20) (2005) 3812-3824.
+O2(a1) + O + O2 => O2 + O + O2                !  1.0d-32
+# K.H.Becker, et al. Chem. Phys. Lett. 8 (1971) 259-262.
+O2(a1) + CH4 => O2 + CH4                      !  1.4d-18
+# S.W. Mayer, et al. J. Phys. Chem. 72 (1968) 2628-2631.
+O2(a1) + CH4 => CH3 + HO2                     !  6.14d-12*exp(-1.79d4/Tgas)
+# R. Atkinson, et al, Atmos. Chem. Phys. Discuss. 3 (2003) 6179-6699.
+O2(a1) + H2O => O2 + H2O                      !  5.0d-18
+O2(a1) + CO2 => O2 + CO2                      !  2.0d-20
+# N.A. Popov, Plasma Sources Sci. Technolo. 20 (2011) 045002.
+O2(a1) + H2 => OH + OH                        !  2.8d-9*exp(-17900.0d0/Tgas)
+# A. Starik, A. Sharipov, Phys. Chem. Chem. Phys. 13 (2011) 16424-16436.
+O2(a1) + H + ANY_NEUTRAL => HO2 + ANY_NEUTRAL !  2.73d-38*Tgas**2.03d0*exp(-1691.0d0/Tgas)
+O2(a1) + H2O => OH + HO2                      !  3.4d-9*exp(-24990.0d0/Tgas)
+# S.H. Mousavipour, V. Saheb, Bull. Chem. Soc. Jpn. 80 (2007) 1901-1913.
+H + HO2 => H2 + O2(a1)                        !  2.72d-16*Tgas**1.63d0*exp(-7690.0d0/Tgas)
+# A.V. Lebedev, et al, Combust. Flame 160 (3) (2013) 530-538.
+O2(a1) + CH3 => CH3O2                         !  2.76d-7/Tgas**2.71d0*exp(-4330.0d0/Tgas)
+O2(a1) + CH3 => CH2O + OH                     !  5.76d-17*Tgas**1.63d0*exp(-3470.0d0/Tgas)
+O2(a1) + CH3 => CH3O + O                      !  1.7d-20*Tgas**2.68d0*exp(-3350.0d0/Tgas)
+# N. Tsolas, R.A. Yetter, I.V. Adamovich, Combust. Flame 176 (2017) 462-478.
+O2(a1) + CH2O => HO2 + HCO                    !  1.66d-10*exp(-11600.0d0/Tgas)
+# J.K. Lefkowitz, et al, Proc. Combust. Inst. 35 (3) (2015) 3505-3512. 
+O2(a1) + H => OH + O                          !  1.83d-10*exp(-3188.0d0/Tgas)
+O2(a1) + H2 => H + HO2                        !  3.49d-11*exp(-18126.0d0/Tgas)  
+O2(a1) + OH => O + HO2                        !  2.16d-11*exp(-17132.0d0/Tgas)
+O2(a1) + CO => CO2 + O                        !  5.25d-13*exp(-14446.0d0/Tgas)
+
+# reactions of O2(b1)
+# E.J. Dunlea, et al, J. Phys. Chem. A 109 (2005) 3912-3920.
+O2(b1) + CH4 => O2(a1) + CH4                 !  1.08d-13
+# M. Capitelli, et al, Plasma Kinetics in Atmospheric Gases, Springer-Verlag, Berlin, Heidelberg, New York.
+O2(b1) + O => O2(a1) + O                     !  8.1d-14
+O2(b1) + O => O2 + O(1D)                     !  3.4d-11*(300.0d0/Tgas)**0.1*exp(-4200.0d0/Tgas)
+O2(b1) + O2 => O2(a1) + O2                   !  4.3d-22*Tgas**2.4d0*exp(-281.0d0/Tgas)
+O2(b1) + N2 => O2(a1) + N2                   !  1.7d-15*(Tgas/300.0d0)
+O2(b1) + NO => O2(a1) + NO                   !  6.0d-14
+# O.V. Braginskiy, et al. J. Phys. D: Appl. Phys., 38 (2005) 3609-3625.
+O2(b1) + O2 => O2 + O2                       !  1.5d-16
+# M. Udii, I.V. Adamovich, et al, J. Phys. D: Appl. Phys., 42 (2009).  
+O2(b1) + N => O2(a1) + N                     !  1.0d-13
+# W. Van Gaens, A. Bogaerts, J. Phys. D: Appl. Phys. 46 (2013) 275201.
+O2(b1) + H => O2(a1) + H                     !  7.2d-14*(Tgas/300.0d0)**0.5d0
+O2(b1) + O2(b1) => O2(a1) + O2               !  3.6d-17*(Tgas/300.0d0)**0.5d0
+O2(b1) + O => O2 + O                         !  8.0d-15*(Tgas/300.0d0)**0.5d0
+# A. Starik, A. Sharipov, Phys. Chem. Chem. Phys. 13 (2011) 16424-16436.
+O2(b1) + H => OH + O(1D)                     !  4.38d-10/Tgas**0.03d0*exp(-16210.0d0/Tgas)
+O2(b1) + H2O => OH + HO2                     !  3.4d-9*exp(-27380.0d0/Tgas)
+O2(b1) + CH4 => CH3 + HO2                    !  3.69d-10*exp(-19970.0d0/Tgas)
+# N.A. Popov, Plasma Sources Sci. Technol. 20 (2011) 045002.
+O2(b1) + H2 => O2(a1) + H2                   !  1.00d-12
+# A. Starikovskiy, N. Aleksandrov, Mechanism of Plasma-Assisted Ignition for H2 and C1-C5 Hydrocarbons, 55th AIAA Aerospace Sciences Meeting, 2017.
+O2(b1) + CO2 => O2 + CO2                     !  4.0d-18
+# J.K. Lefkowitz, et al, Proc. Combust. Inst. 35 (3) (2015) 3505-3512.
+O2(b1) + H => OH + O                         !  1.83d-10*exp(-1620.0d0/Tgas)    
+O2(b1) + H2 => H + HO2                       !  3.49d-11*exp(-11508.0d0/Tgas)      
+O2(b1) + OH => O + HO2                       !  2.16d-11*exp(-10111.0d0/Tgas)
+O2(b1) + CO => CO2 + O                       !  5.25d-13*exp(-12197.0d0/Tgas) 
+
+# reactions of O2*
+# M. Capitelli, et al, Plasma Kinetics in Atmospheric Gases, Springer-Verlag, Berlin, Heidelberg, New York.
+O2* + O  => O2 + O(1S)                       !  9.0d-12
+O2* + O2 => O2(b1) + O2(b1)                  !  3.0d-13
+O2* + N2 => O2(b1) + N2                      !  9.0d-15
+# O.V. Braginskiy, et al. J. Phys. D: Appl. Phys., 38 (2005) 3609-3625.
+O2* + O  => O2 + O                           !  4.97d-12
+O2* + O => O2(a1) + O                        !  2.7d-12
+O2* + O => O2(b1) + O                        !  1.35d-12
+O2* + O2 => O2(a1) + O2                      !  1.86d-13
+O2* + O2 => O2(b1) + O2                      !  8.1d-14
+O2* + O2 => O2 + O2                          !  2.3d-14
+# A. Starikovskiy, N. Aleksandrov, Mechanism of Plasma-Assisted Ignition for H2 and C1-C5 Hydrocarbons, 55th AIAA Aerospace Sciences Meeting, 2017.
+O2* + H2 => H2 + O2                          !  7.9d-13
+O2* + H2 => H2 + O2(A1)                      !  8.3d-13
+O2* + H2O => H2O + O2 			     !  4.0d-12
+O2* + H2O => O + H2O2                        !  2.05d-12*Tgas**0.5       
+O2* + HO2 => HO2 + O2                        !  5.65d-18
+O2* + H2O2 => H2O2 + O2                      !  5.65d-18
+O2* + CH4 => O2 + CH4		             !  3.0d-15
+O2* + CH4 => CH3 + HO2                       !  6.14d-12
+O2* + CO2 => CO2 + O2                        !  1.0d-14
+
+#-----------------------------------------------------------------------
+#
+# quenching of excited states of O
+#
+#-----------------------------------------------------------------------
+
+# reactions of O(1D)
+# M. Capitelli, et al, Plasma Kinetics in Atmospheric Gases, Springer-Verlag, Berlin, Heidelberg, New York.
+O(1D) + O  => O + O                          !  8.0d-12
+O(1D) + O2 => O + O2                         !  6.4d-12*exp(67.0d0/Tgas)
+O(1D) + O2 => O + O2(a1)                     !  1.0d-12
+O(1D) + O2 => O + O2(b1)                     !  2.6d-11*exp(67.0d0/Tgas)   
+O(1D) + N2 => O + N2                         !  2.3d-11
+O(1D) + NO => O2 + N                         !  1.7d-10
+O(1D) + N2O => NO + NO                       !  7.2d-11
+O(1D) + N2O => O2 + N2                       !  4.4d-11
+# S.P. Sander et al, JPL Publication 02-25; Jet Propulsion Laboratory, California Institute of Technology: Pasadena, CA, 2006.
+O(1D) + CH4 => CH3 + OH                      !  1.13d-10
+O(1D) + CH4 => CH2OH + H                     !  3.0d-11
+O(1D) + CH4 => CH2O + H2                     !  7.5d-12
+# W.B. DeMore, et al, Chemical Kinetics and Potochemical Data for Use in Stratospheric Modeling - Evaluation No. 12, JPL Publication 97-4, Jan. 1997.
+O(1D) + H2 => OH + H                         !  1.1d-10
+# J.A. Davidson, et al, J. Chem. Phys. 69 (1978) 1216-1217.
+O(1D) + CO => O + CO                         !  4.7d-11*exp(-62.4d0/Tgas)
+# I.S. Flectcher, D. Husain, Can. J. Chem. 54 (1976) 1765-1770.
+O(1D) + H2O2 => HO2 + OH                     !  5.2d-10
+# N. Tsolas, R.A. Yetter, I.V. Adamovich, Combust. Flame 176 (2017) 462-478.
+O(1D) + H2O => OH + OH                       !  1.69d-10*exp(36.0d0/Tgas)
+O(1D) + CH2O => CO + H2O                     !  1.66d-10
+O(1D) + CH3OH => CH2OH + OH                  !  2.99d-10
+# A. Starikovskiy, N. Aleksandrov, Mechanism of Plasma-Assisted Ignition for H2 and C1-C5 Hydrocarbons, 55th AIAA Aerospace Sciences Meeting, 2017.
+O(1D) + H2 => H2 + O                         !  1.1d-10
+O(1D) + H2O => H2 + O2                       !  1.4d-12  
+O(1D) + H2O => H2O + O                       !  2.8d-10
+O(1D) + HO2 => OH + O2                       !  2.7d-11*exp(-224.0d0/Tgas)
+O(1D) + CO2 => CO + O2                       !  2.0d-10
+O(1D) + CO2 => CO2 + O                       !  2.0d-10
+
+# reactions of O(1S)
+# M. Capitelli, et al, Plasma Kinetics in Atmospheric Gases, Springer-Verlag, Berlin, Heidelberg, New York.
+O(1S) + O  => O(1D) + O                      !  5.0d-11*exp(-300.0d0/Tgas)
+O(1S) + N  => O + N                          !  1.0d-12
+O(1S) + O2 => O(1D) + O2                     !  1.3d-12*exp(-850.0d0/Tgas)
+O(1S) + O2 => O + O + O                      !  3.0d-12*exp(-850.0d0/Tgas)
+O(1S) + N2 => O + N2                         !  1.0d-17
+O(1S) + O2(a1) => O + O2*                    !  1.1d-10
+O(1S) + O2(a1) => O(1D) + O2(b1)             !  2.9d-11
+O(1S) + O2(a1) => O + O + O                  !  3.2d-11
+O(1S) + NO => O + NO                         !  2.9d-10
+O(1S) + NO => O(1D) + NO                     !  5.1d-10
+O(1S) + N2O => O + N2O                       !  6.3d-12
+O(1S) + N2O => O(1D) + N2O                   !  3.1d-12
+# A. Starikovskiy, N. Aleksandrov, Mechanism of Plasma-Assisted Ignition for H2 and C1-C5 Hydrocarbons, 55th AIAA Aerospace Sciences Meeting, 2017.
+O(1S) + H2 => H2 + O                         !  1.0d-10
+O(1S) + H2 => H + OH                         !  1.0d-10
+O(1S) + H2O => H2O + O                       !  4.2d-10  
+O(1S) + H2O => H2O + O(1D)                   !  1.2d-10
+O(1S) + H2O => OH + OH                       !  2.5d-10
+O(1S) + CH4 => CH3 + OH                      !  2.2d-10
+O(1S) + CH4 => H2 + CH2O                     !  2.4d-11
+O(1S) + CO2 => CO + O2                       !  2.0d-10
+O(1S) + CO2 => CO2 + O                       !  2.0d-10
+
+#-----------------------------------------------------------------------
+#
+# positive ion reaction
+#
+#-----------------------------------------------------------------------
+
+# M. Capitelli, et al, Plasma Kinetics in Atmospheric Gases, Springer-Verlag, Berlin, Heidelberg, New York.
+N2^+ + O2 => O2^+ + N2                      !  6.0d-11*(300.d0/TeffN2)**0.5d0
+# N.L. Aleksandrov, et al. Plasma Phys. Rep+, 35 (2009) 867-882.
+N2^+ + CH4 => N2 + CH3^+ + H                !  1.3d-9
+CH4^+ + O2 => CH4 + O2^+                    !  5.0d-10 
+
+#-----------------------------------------------------------------------
+#
+# electron-ion recombination
+#
+#-----------------------------------------------------------------------
+
+# I.A. Kossyi, et al, Plasma Sources Sci. Technol., (1992) 207-220.
+E + N2^+ => N + N                      !  2.8d-7*(300.0d0/Te)**0.5d0
+# M. Capitelli, et al, Plasma Kinetics in Atmospheric Gases, Springer-Verlag, Berlin, Heidelberg, New York.
+E + O2^+ => O  + @B                    !  2.7d-7*(300.0d0/Te)**0.7*@R
+    @B = O       O(1D)   O(1S)
+    @R = 0.55d0  0.40d0  0.05d0
+# N.L. Aleksandrov, et al, Plasma Phys. Rep+, 35 (2009) 867-882.
+E + CH4^+ => CH3 + H                   !  1.7d-7*(300.0d0/Te)**0.5d0
+E + CH4^+ => CH2 + H + H               !  1.7d-7*(300.0d0/Te)**0.5d0
+E + CH3^+ => CH2 + H                   !  3.5d-7*(300.0d0/Te)**0.5d0
+E + CH2^+ => CH + H                    !  2.5d-7*(300.0d0/Te)**0.5d0
+
+END

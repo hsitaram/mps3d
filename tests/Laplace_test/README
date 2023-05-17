@@ -1,1 +1,4 @@
-compile solver for general pde with -DLAPLACE_SOLVE
+This example solves del^2 phi=0 in 3d
+left and right - dirichlet BC
+top and bottom - zerograd
+front and back - zerograd

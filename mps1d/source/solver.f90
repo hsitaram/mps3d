@@ -889,7 +889,6 @@ subroutine timestepping()
 			if(prob_specific_params(2) .eq. 2) voltage_R = pulse_voltage
 
 		endif
-
 				
 		if(printflag .eqv. .true.) then
 			print *,"left and right voltages:",voltage_L,voltage_R
@@ -949,7 +948,7 @@ subroutine printfile(it)
 
 	prodfptr=14
 	solnfptr=15
-	write(itstr,'(I4.4)') it
+	write(itstr,'(I7.7)') it
 
 	solnfname="soln_"//trim(itstr)//".dat"
 	prodfname="prod_"//trim(itstr)//".dat"

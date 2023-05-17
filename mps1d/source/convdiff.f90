@@ -60,10 +60,6 @@ subroutine findAX(AX,X,timederivfactor,vel,dcoeff,reac,dirc_bc_flags,&
 
       AX(:) = timederivfactor*X(:)/dt
       
-      !is the volume half of dx at the boundary?
-      AX(1) = HALF*timederivfactor*X(1)/dt
-      AX(n) = HALF*timederivfactor*X(n)/dt
-
       !convection and diffusion terms
       do i=1,n-1
       	call findupwindconvflux(vel(i),vel(i+1),X(i),X(i+1),flux)
@@ -77,11 +73,9 @@ subroutine findAX(AX,X,timederivfactor,vel,dcoeff,reac,dirc_bc_flags,&
       !print *,"AX inside findAX:",AX
 
       !reaction term
-      do i=2,n-1
+      do i=1,n
       	AX(i) = AX(i) - reac(i)*X(i)
       enddo
-      AX(1) = AX(1) - HALF*reac(i)*X(i)
-      AX(n) = AX(n) - HALF*reac(i)*X(i)
 
       !boundary conditions
       if(dirc_bc_flags(1) .eqv. .true.) then
@@ -90,12 +84,6 @@ subroutine findAX(AX,X,timederivfactor,vel,dcoeff,reac,dirc_bc_flags,&
       if(dirc_bc_flags(2) .eqv. .true.) then
 	     AX(n)=X(n)
       endif
-
-      !note: for flux bc, the terms go into b and not AX
-      
-      !if the volume is half of dx at the boundaries the reac(i)*X(i)
-      !should be 0.5*reac(i)*X(i) 
-
 
 end subroutine findAX
 !===============================================================
@@ -115,9 +103,6 @@ subroutine findrhs(b,xold,timederivfactor,&
       do i=1,n
       	b(i) = timederivfactor*xold(i)/dt + source(i)
       enddo	
-      !is the volume half of dx at the boundary?
-      b(1) = HALF*(timederivfactor*xold(1)/dt + source(1))
-      b(n) = HALF*(timederivfactor*xold(n)/dt + source(n))
 
       if(dirc_bc_flags(1) .eqv. .true.) then
 	      b(1) = dircvals(1)
@@ -131,9 +116,6 @@ subroutine findrhs(b,xold,timederivfactor,&
       if(flux_bc_flags(2) .eqv. .true.) then
 	      b(n) = b(n) - fluxvals(2)/(dx)
       endif
-
-      !if the volume is half of dx then the fluxvals should be
-      !divided by 0.5*dx
 
 end subroutine findrhs
 !===============================================================
@@ -190,13 +172,6 @@ subroutine gauss_seidel_smoothing(res,b,X,timederivfactor,vel,dcoeff,reac,&
 	     do i=1,n
 
 	        diag = -reac(i) + timederivfactor*ONE/dt
-
-		!is the volume half of dx at the boundary?
-		if((i .eq. 1) .or. (i .eq. n)) then
-			diag = HALF*diag
-		else
-			diag = HALF*diag
-		endif
 
 		offdiag=ZERO
 

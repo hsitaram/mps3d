@@ -1,0 +1,1 @@
+This case uses Turner's rate constants and electron transport props , but uses SOMAFOAM's ion transport, which is just Turner's mobility X 0.3.

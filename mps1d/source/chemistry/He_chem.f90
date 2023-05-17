@@ -4,8 +4,8 @@ module chem_module
       implicit none
 
       integer, parameter :: nspecies=6
-      integer, parameter :: bgspecnum=1   !background gas
-      integer, parameter :: especnum=2	  !electron species
+      integer, parameter :: bgspecnum=6   !background gas
+      integer, parameter :: especnum=1	  !electron species
       integer, parameter :: nreac=9
       real*8, parameter  :: cm_to_m = 0.01
       character (LEN=10), dimension(nspecies) :: specnames
@@ -39,12 +39,12 @@ subroutine assignreactions()
 	k_arrh     = ZERO
 	isratearrh = .true.
 
-	HE   = 1
-	E    = 2
-	HEp  = 3
-	HE2p = 4
-        HEm  = 5
-	HE2m = 6
+	HE   = 6
+	E    = 1
+	HEp  = 2
+	HE2p = 3
+        HEm  = 4
+	HE2m = 5
 
 	!convention for energy is added is positive and
 	!removed is negative.
@@ -240,36 +240,36 @@ end subroutine assignreactions
 !====================================================================
 subroutine setspecparams()
 
-	      specnames(1) = 'HE'
-	      specnames(2) = 'E'
-	      specnames(3) = 'HE+'
-	      specnames(4) = 'HE2+'
-	      specnames(5) = 'HEm'
-	      specnames(6) = 'HE2m'
+	      specnames(6) = 'HE'
+	      specnames(1) = 'E'
+	      specnames(2) = 'HE+'
+	      specnames(3) = 'HE2+'
+	      specnames(4) = 'HEm'
+	      specnames(5) = 'HE2m'
 
-	      molmass(1) = 4.d0*mass_prot
-	      molmass(2) = mass_elec
-	      molmass(3) = 4.d0*mass_prot
-	      molmass(4) = 8.d0*mass_prot
-	      molmass(5) = 4.d0*mass_prot
-	      molmass(6) = 8.d0*mass_prot
+	      molmass(6) = 4.d0*mass_prot
+	      molmass(1) = mass_elec
+	      molmass(2) = 4.d0*mass_prot
+	      molmass(3) = 8.d0*mass_prot
+	      molmass(4) = 4.d0*mass_prot
+	      molmass(5) = 8.d0*mass_prot
 
-	      spec_charge(1) =  ZERO
-	      spec_charge(2) = -ONE
-	      spec_charge(3) =  ONE
-	      spec_charge(4) =  ONE
-	      spec_charge(5) =  ZERO
 	      spec_charge(6) =  ZERO
+	      spec_charge(1) = -ONE
+	      spec_charge(2) =  ONE
+	      spec_charge(3) =  ONE
+	      spec_charge(4) =  ZERO
+	      spec_charge(5) =  ZERO
 
-	      ionspecmin = 3
-	      ionspecmax = 4
+	      ionspecmin = 2
+	      ionspecmax = 3
 
 	      no_of_ions = 2
 
-	      neutralspecmin = 5
+	      neutralspecmin = 4
 	      neutralspecmax = 6
 
-	      no_of_neutrals = 2
+	      no_of_neutrals = 3
 
 end subroutine setspecparams
 !====================================================================
@@ -383,12 +383,12 @@ function getspecdcoeff(specnum,specarray,elecfield,Te,Tg,Pg)  result(dcoeff)
 	Patm = ONE_ATM_IN_PA
         Pres_ratio = Patm/Pg
 
-	HE   = 1
-	E    = 2
-	HEp  = 3
-	HE2p = 4
-        HEm  = 5
-	HE2m = 6
+	HE   = 6
+	E    = 1
+	HEp  = 2
+	HE2p = 3
+        HEm  = 4
+	HE2m = 5
 
 	if(specnum .eq. E) then
 		dcoeff=0.1737*(Te/17406.d0)*Pres_ratio
@@ -400,6 +400,8 @@ function getspecdcoeff(specnum,specarray,elecfield,Te,Tg,Pg)  result(dcoeff)
 		dcoeff=4.116d-4*Pres_ratio
 	else if(specnum .eq. HE2m) then
 		dcoeff=2.029d-4*Pres_ratio
+	else if(specnum .eq. He) then
+		dcoeff= (4.116d-04)*(Patm/Pg)	
 	else 
 		write(*,*)"species does not exist"
 	endif
@@ -419,12 +421,12 @@ function getspecmobility(specnum,specarray,elecfield,Te,Tg,Pg)  result(mobility)
 
 	Patm = ONE_ATM_IN_PA
 
-	HE   = 1
-	E    = 2
-	HEp  = 3
-	HE2p = 4
-        HEm  = 5
-	HE2m = 6
+	HE   = 6
+	E    = 1
+	HEp  = 2
+	HE2p = 3
+    HEm  = 4
+	HE2m = 5
         
         Pres_ratio = (Patm/Pg)
 

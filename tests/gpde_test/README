@@ -1,0 +1,6 @@
+This example solves dphidt + del. (-\hat{x} phi)=del.(0.5 dphidx) + 2 phi - x**2
+At steady state, phi = 0.5*(x**2-x)
+left - dirichlet BC (phi=0)
+right - flux BC (outward flux=-0.25)
+top and bottom - zerograd
+front and back - zerograd

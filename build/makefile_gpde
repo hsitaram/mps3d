@@ -12,10 +12,9 @@ SOLVERFILES   = ${SOLVERDIR}/inputs.o ${SOLVERDIR}/pdedefs.o ${SOLVERDIR}/solve_
 OBJFILES = globalvars.o vectorfunctions.o inputs.o par_decompose.o discretepde.o cartwrite.o \
 	   linearsolvers.o gmres.o mgridsteps.o pdedefs.o solve_manager.o
 
-LAPLACESOLVEFLAG=-DLAPLACE_SOLVE
-#LAPLACESOLVEFLAG=-fpp
 FORT = mpif90
-FFLAGS = -fbounds-check ${LAPLACESOLVEFLAG}
+#FFLAGS = -fbounds-check ${LAPLACESOLVEFLAG}
+FFLAGS = ${LAPLACESOLVEFLAG}
 
 %.o: %.f90
 	${FORT} -c ${FFLAGS} $< -o $@
