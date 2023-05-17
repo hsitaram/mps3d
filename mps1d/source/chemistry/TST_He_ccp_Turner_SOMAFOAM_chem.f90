@@ -295,17 +295,14 @@ function getspecdcoeff(specnum,specarray,elecfield,Te,Tg,Pg)  result(dcoeff)
 
 	if(specnum .eq. E) then
 		
-		!dcoeff = exp(54.51 + 1.412*log(meanE) + 2.586/meanE &
-		!			-0.8763/meanE**2  + (0.1025)/meanE**3) / neutral_den
-
-		dcoeff = 0.1737*(Te/17406.d0)*(Patm/Pg)			
+		dcoeff = exp(54.51 + 1.412*log(meanE) + 2.586/meanE &
+					-0.8763/meanE**2  + (0.1025)/meanE**3) / neutral_den
 
 	else if(specnum .eq. Hep) then
 		 
 		! Using Einstein's relation and mobility relation from getspecmobility
-		dcoeff = k_B*Te*(2.69*(1 + (1.2d-03)*(EN_in_Td)**2 + &
+		dcoeff = 0.3*k_B*Te*(2.69*(1 + (1.2d-03)*(EN_in_Td)**2 + &
 				(4.2d-08)*(EN_in_Td)**4)**(-1.0/8.0)) / (echarge)
-		!dcoeff= (5.026d-05)*(Patm/Pg)
 
 	else if(specnum .eq. He_star) then
 		 
@@ -364,15 +361,15 @@ function getspecmobility(specnum,specarray,elecfield,Te,Tg,Pg)  result(mobility)
 
 	if(specnum .eq. E) then
  
-		!mobility = (-1.0)*exp(55.0 + 0.3942*log(meanE) + 2.134/meanE &
-		!			-0.6433/meanE**2  + (0.7112d-01)/meanE**3) / neutral_den
-		mobility = (-0.11320)*(Patm/Pg) 
-
+		mobility = (-1.0)*exp(55.0 + 0.3942*log(meanE) + 2.134/meanE &
+					-0.6433/meanE**2  + (0.7112d-01)/meanE**3) / neutral_den
+					
 	else if(specnum .eq. Hep) then
 		
-		mobility = (2.69*(1 + (1.2d-03)*(EN_in_Td)**2 + &
+		mobility = 0.3*(2.69*(1 + (1.2d-03)*(EN_in_Td)**2 + &
 						(4.2d-08)*(EN_in_Td)**4)**(-1.0/8.0))
-		!mobility   = (1.482d-03)*(Patm/Pg)
+                    ! SOMAFOAM's mobility data is exactly 0.3*Turner's mobility data
+
 	else
 		write(*,*)"species does not exist"
 		stop

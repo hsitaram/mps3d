@@ -302,7 +302,7 @@ function getspecdcoeff(specnum,specarray,elecfield,Te,Tg,Pg)  result(dcoeff)
 		 
 		! Using Einstein's relation and mobility relation from getspecmobility
 		dcoeff = k_B*Te*(2.69*(1 + (1.2d-03)*(EN_in_Td)**2 + &
-				(4.2d-08)*(EN_in_Td)**4)**(-1.0/8.0)) / (echarge*neutral_den)
+				(4.2d-08)*(EN_in_Td)**4)**(-1.0/8.0)) / (echarge)
 
 	else if(specnum .eq. He_star) then
 		 
@@ -361,14 +361,13 @@ function getspecmobility(specnum,specarray,elecfield,Te,Tg,Pg)  result(mobility)
 
 	if(specnum .eq. E) then
  
-		mobility = 0.2*(-1.0)*exp(55.0 + 0.3942*log(meanE) + 2.134/meanE &
+		mobility = (-1.0)*exp(55.0 + 0.3942*log(meanE) + 2.134/meanE &
 					-0.6433/meanE**2  + (0.7112d-01)/meanE**3) / neutral_den
-					! TST reduced it to 20% of its original value
 					
 	else if(specnum .eq. Hep) then
 		
 		mobility = (2.69*(1 + (1.2d-03)*(EN_in_Td)**2 + &
-						(4.2d-08)*(EN_in_Td)**4)**(-1.0/8.0)) / neutral_den
+						(4.2d-08)*(EN_in_Td)**4)**(-1.0/8.0))
 
 	else
 		write(*,*)"species does not exist"
