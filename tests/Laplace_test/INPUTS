@@ -13,14 +13,14 @@ Grid_and_processors
 CELLS_X		128
 CELLS_Y		128
 CELLS_Z  	128
-PROC_X  	2	
+PROC_X          2	
 PROC_Y  	2
 PROC_Z  	2
 ======================================================
 Boundary_conditions
 ======================================================
 left	DIRC	0.0
-right	DIRC	2.0
+right	DIRC	1.0
 bottom	ZGRD	0.0
 top	ZGRD	0.0
 back	ZGRD	0.0

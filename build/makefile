@@ -1,5 +1,5 @@
-#CHEMFILEPREFIX = H2_O2_chem
-CHEMFILEPREFIX = ion_elec_chem
+CHEMFILEPREFIX = H2_O2_chem
+#CHEMFILEPREFIX = ion_elec_chem
 CHEMFILE = ${CHEMFILEPREFIX}.f90
 CHEMOBJFILE = ${CHEMFILEPREFIX}.o
 
@@ -28,7 +28,8 @@ OBJFILES = globalvars.o vectorfunctions.o inputs.o par_decompose.o \
 	   solve_manager.o ${CHEMDIR}/${CHEMOBJFILE}
 
 FORT = mpif90
-FFLAGS = -O2
+#FFLAGS = -g -fbounds-check
+FFLAGS = -O3
 #FFLAGS = -g -check bounds
 
 EXECNAME = mps3d_${CHEMFILEPREFIX}.exe
