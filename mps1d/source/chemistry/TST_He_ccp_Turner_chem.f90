@@ -301,7 +301,7 @@ function getspecdcoeff(specnum,specarray,elecfield,Te,Tg,Pg)  result(dcoeff)
 	else if(specnum .eq. Hep) then
 		 
 		! Using Einstein's relation and mobility relation from getspecmobility
-		dcoeff = k_B*Te*(2.69*(1 + (1.2d-03)*(EN_in_Td)**2 + &
+		dcoeff = k_B*Tg*(2.69*(1 + (1.2d-03)*(EN_in_Td)**2 + &
 				(4.2d-08)*(EN_in_Td)**4)**(-1.0/8.0)) / (echarge)
 
 	else if(specnum .eq. He_star) then
