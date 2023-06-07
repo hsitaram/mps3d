@@ -1,0 +1,23 @@
+ELEMENTS
+E O
+END
+
+SPECIES
+E O^+ O2^+ O^- O O2
+END
+
+BOLSIG
+O2
+END
+
+REACTIONS
+
+O2 + E => O2^+ + E + E ! (9.0d-10)*(Te**0.5)*exp(-146216.7/Te)
+O2 + E => O + O + E ! (4.23d-9)*exp(-64521.02/Te)
+O2 + E => O + O^- ! (8.8d-11)*exp(-51059.8/Te)
+O + E => O^+ + E + E ! (9.d-09)*(Te**0.7)*exp(-157821.2/Te)
+O^- + O2^+ => O + O2 ! 1.99d-07
+O^- + O^+ => O + O ! 2.66d-07
+O^- + E => O + E + E ! 2.0d-07*exp(-63824.75/Te)
+
+END

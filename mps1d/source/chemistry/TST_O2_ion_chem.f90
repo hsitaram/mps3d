@@ -3,10 +3,10 @@ module chem_module
       use fundconstants
       implicit none
 
-      integer, parameter :: nspecies=3
-      integer, parameter :: bgspecnum=1   !background gas
-      integer, parameter :: especnum=2	  !electron species
-      integer, parameter :: nreac=1
+      integer, parameter :: nspecies=6
+      integer, parameter :: bgspecnum=6   !background gas
+      integer, parameter :: especnum=1	  !electron species
+      integer, parameter :: nreac=7
       real*8, parameter  :: cm_to_m = 0.01
       character (LEN=10), dimension(nspecies) :: specnames
       integer :: reactants(nreac,nspecies)
@@ -30,7 +30,7 @@ module chem_module
 !====================================================================
 subroutine assignreactions()
 
-	integer :: N,E,I
+	integer :: E,Op,O2p,Om,O,O2
 	integer :: rnum
 	
 	reactants  = 0
@@ -40,64 +40,47 @@ subroutine assignreactions()
 	k_arrh     = 0.d0
 	isratearrh = .true.
 
-	N   = 1
-	E   = 2
-	I   = 3
-
-	!convention for energy is added is positive and
-	!removed is negative.
-	!eg: electron loses 19.8 eV when reaction 
-	!1 happens
-
-	rnum=1
-	!***********************************
-	!N + E --> I + 2E
-	!***********************************
-	reactants(rnum,N)   = 1
-	reactants(rnum,E)   = 1
-	
-	products(rnum,I)    = 1	
-	products(rnum,E)    = 2
-	!-----------------------------------
-	isratearrh(rnum) = .true.
-	k_arrh(1,rnum)   = 2.5d-6*(cm_to_m**3)
-	k_arrh(2,rnum)   = 0.d0
-	k_arrh(3,rnum)   = 278508.0
-	!-----------------------------------
-	elecenergy(rnum) = -15.578
-	gasenergy(rnum)  =  0.d0
-	!+++++++++++++++++++++++++++++++++++
-
-	if(rnum .ne. nreac) then
-		print *,"rnum not equal to nreac"
-		stop
-	endif
+    E = 1
+    Op = 2
+    O2p = 3
+    Om = 4
+    O = 5
+    O2 = 6
 
 end subroutine assignreactions
 !====================================================================
 subroutine setspecparams()
 
-	      specnames(1) = 'N'
-	      specnames(2) = 'E'
-	      specnames(3) = 'I+'
+	      specnames(1) = 'E'
+	      specnames(2) = 'O^+'
+	      specnames(3) = 'O2^+'
+	      specnames(4) = 'O^-'
+	      specnames(5) = 'O'
+	      specnames(6) = 'O2'
 
-	      molmass(1) = 32.0d0*mass_prot
-	      molmass(2) = mass_elec
-	      molmass(3) = 32.0d0*mass_prot
+	      molmass(1) = mass_elec
+	      molmass(2) = 16.d0*mass_prot
+	      molmass(3) = 32.d0*mass_prot
+	      molmass(4) = 16.d0*mass_prot
+	      molmass(5) = 16.d0*mass_prot
+	      molmass(6) = 32.d0*mass_prot
 
-	      spec_charge(1) =  0.d0
-	      spec_charge(2) = -1.d0
-	      spec_charge(3) =  1.d0
+	      spec_charge(1) = -1.d0
+	      spec_charge(2) = 1.d0
+	      spec_charge(3) = 1.d0
+	      spec_charge(4) = -1.d0
+	      spec_charge(5) = 0.d0
+	      spec_charge(6) = 0.d0          
 
-	      ionspecmin = 3
-	      ionspecmax = 3
+	      ionspecmin = 2
+	      ionspecmax = 4
 
-	      no_of_ions = 1
+	      no_of_ions = 3
 
-	      neutralspecmin = 0
-	      neutralspecmax = -1
+	      neutralspecmin = 5
+	      neutralspecmax = 5
 
-	      no_of_neutrals = 0
+	      no_of_neutrals = 1
 
 end subroutine setspecparams
 !====================================================================
@@ -107,7 +90,7 @@ subroutine read_elec_and_gas_energies()
 	integer :: i, energyinpfptr
 
 	energyinpfptr = 230
-	open(unit=energyinpfptr,file="elec_gas_energy_ion_elec.inp")
+	open(unit=energyinpfptr,file="elec_gas_energy_O2_ion.inp")
 	do i = 1,nreac
 		read(energyinpfptr,*) elecenergy(i),gasenergy(i)
 	enddo
@@ -127,9 +110,15 @@ function zdp_getreactionrates(Te, Tgas) result(rrt)
 
         real*8 :: rrt(nreac)
         real*8, intent(in) :: Te, Tgas
-
-        rrt(01) = (9.0D-10)*(TE**0.5)*EXP(-146216.7/TE) / (eVtoK**0.5)
-    
+ 
+        rrt(1) = (9.0D-10)*(TE**0.5)*EXP(-146216.7/TE) / (eVtoK**0.5)
+        rrt(2) = (4.23D-9)*EXP(-64521.02/TE)
+        rrt(3) = (8.8D-11)*EXP(-51059.8/TE)
+        rrt(4) = (9.0D-09)*(TE**0.7)*EXP(-157821.2/TE) / (eVtoK**0.7)
+        rrt(5) = 1.99D-07
+        rrt(6) = 2.66D-07
+        rrt(7) = 2.0D-07*EXP(-63824.75/TE)
+  
         rrt = rrt*cm_to_m**3
 
 end function zdp_getreactionrates
@@ -148,8 +137,14 @@ function zdp_getratesofprogress(Te,Tg,specden) result(rrt)
 
 		rrt = zdp_getreactionrates(Te,Tg)
         
-		rrt(01) = rrt(01) * density(1) * density(2)
-		
+        rrt(1) = rrt(1) * density(1) * density(6) 
+        rrt(2) = rrt(2) * density(1) * density(6) 
+        rrt(3) = rrt(3) * density(1) * density(6) 
+        rrt(4) = rrt(4) * density(1) * density(5) 
+        rrt(5) = rrt(5) * density(3) * density(4) 
+        rrt(6) = rrt(6) * density(2) * density(4) 
+        rrt(7) = rrt(7) * density(1) * density(4) 
+
 end function zdp_getratesofprogress
 
 subroutine zdp_getspecproduction(Te,Tg,specden) 
@@ -160,9 +155,12 @@ subroutine zdp_getspecproduction(Te,Tg,specden)
 
 		rrt = zdp_getratesofprogress(Te,Tg,specden)
 
-        ydot(1) = -rrt(1)
-        ydot(2) = +rrt(1)
-        ydot(3) = +rrt(1)
+        ydot(1) = +rrt(1)-rrt(3)+rrt(4)+rrt(7) 
+        ydot(2) = +rrt(4)-rrt(6) 
+        ydot(3) = +rrt(1)-rrt(5) 
+        ydot(4) = +rrt(3)-rrt(5)-rrt(6)-rrt(7) 
+        ydot(5) = +2.d0 * rrt(2)+rrt(3)-rrt(4)+rrt(5)+2.d0 * rrt(6)+rrt(7) 
+        ydot(6) = -rrt(1)-rrt(2)-rrt(3)+rrt(5) 
 
 end subroutine zdp_getspecproduction
 
@@ -288,22 +286,36 @@ function getspecdcoeff(specnum,specarray,elecfield,Te,Tg,Pg)  result(dcoeff)
 	real*8 :: dcoeff
 	real*8 :: Patm,mob
 	
-	integer :: N,E,I
+	integer :: E,Op,O2p,Om,O,O2
 	
-    N = 1
-	E = 2
-    I = 3
+    E = 1
+    Op = 2
+    O2p = 3
+    Om = 4
+    O = 5
+    O2 = 6
 
 	Patm = 101325.d0
 
 	if(specnum .eq. E) then
 		mob = getspecmobility(specnum,specarray,elecfield,Te,Tg,Pg) 
 		dcoeff = k_B*Te*mob/(spec_charge(specnum)*echarge)
-	else if(specnum .eq. I) then
+
+	else if(specnum .eq. Op) then		
 		mob = getspecmobility(specnum,specarray,elecfield,Te,Tg,Pg) 
 		dcoeff= k_B*Tg*mob/(spec_charge(specnum)*echarge)
-	else if (specnum .eq. N) then
-		dcoeff = 2e-5
+
+	else if(specnum .eq. O2p) then
+		mob = getspecmobility(specnum,specarray,elecfield,Te,Tg,Pg) 
+		dcoeff= k_B*Tg*mob/(spec_charge(specnum)*echarge)
+
+	else if(specnum .eq. Om) then
+		mob = getspecmobility(specnum,specarray,elecfield,Te,Tg,Pg) 
+		dcoeff= k_B*Tg*mob/(spec_charge(specnum)*echarge)
+
+	else if(specnum .eq. O) then
+		dcoeff=0.0075
+
 	else
 		write(*,*)"species does not exist"
 	endif
@@ -317,17 +329,20 @@ function getspecmobility(specnum,specarray,elecfield,Te,Tg,Pg)  result(mobility)
 	real*8, intent(in)   :: specarray(nspecies)
 	real*8, intent(in)   :: elecfield
 
-	real*8 :: mobility,mob_inv_N
+	real*8 :: mobility,mob_inv_O2
 	real*8 :: Patm,Natm,Troom
 	real*8 :: neutral_den
 
-	integer :: N,E,I
+	integer :: E,Op,O2p,Om,O,O2
 	real*8 :: Te_in_eV
 	real*8 :: log_Te
 	
-	N = 1
-    E = 2
-    I = 3
+    E = 1
+    Op = 2
+    O2p = 3
+    Om = 4
+    O = 5
+    O2 = 6
 
 	neutral_den = Pg/k_B/Tg
 	Te_in_eV = Te/eVtoK
@@ -338,12 +353,22 @@ function getspecmobility(specnum,specarray,elecfield,Te,Tg,Pg)  result(mobility)
 	Natm = Patm/k_B/Troom
 
 	if(specnum .eq. E) then
-		mob_inv_N = specarray(N)/exp(0.031*log_Te**2 - 0.658*log_Te + 56.71)
-		mobility = -1.d0/(mob_inv_N)
-	else if(specnum .eq. I) then
-		mob_inv_N = specarray(N)/(2.1d0*(cm_to_m**2) )
-		mobility   = Natm/(mob_inv_N)
-	else
+		mob_inv_O2 = specarray(O2)/exp(0.031*log_Te**2 - 0.658*log_Te + 56.71)
+		mobility = -1.d0/(mob_inv_O2)
+
+	else if(specnum .eq. Op) then
+		mob_inv_O2 = specarray(O2)/(3.5d0*(cm_to_m**2))
+		mobility   = Natm/(mob_inv_O2)        
+
+	else if(specnum .eq. O2p) then
+		mob_inv_O2 = specarray(O2)/(2.1d0*(cm_to_m**2) )
+		mobility   = Natm/(mob_inv_O2)    
+
+	else if(specnum .eq. Om) then
+		mob_inv_O2 = specarray(O2)/(3.8d0*(cm_to_m**2) )
+		mobility   = -Natm/(mob_inv_O2)
+
+    else
 		write(*,*)"species does not exist"
 	endif
 
