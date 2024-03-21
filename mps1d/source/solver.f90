@@ -51,6 +51,7 @@ module plasma_solver
 
       real*8  :: restart_time
       integer :: restart_it
+      integer :: hyporder
 
       contains
 !=============================================================================
@@ -72,6 +73,7 @@ subroutine init()
 	restartfptr = 24
 	logfileptr = 25
 	nderived_quantities=5
+        hyporder=1
 
 	call initializechemistry()
 
@@ -279,7 +281,7 @@ subroutine potentialsolve(printflag,residual)
 			vel,dcoeff,reac,dirc_bc_flags,&
 			flux_bc_flags,dircvals,fluxvals,dx,dt,&
 			maxkspdim,np,itmax_restart,findAX,mgridprecond,&
-			gmres_tol,success,printflag,residual)
+			gmres_tol,success,printflag,residual,hyporder)
 	
 	call compute_efield()
 
@@ -391,7 +393,7 @@ subroutine ionsolve(ispecnum,printflag,residual)
 			vel,dcoeff,reac,dirc_bc_flags,&
 			flux_bc_flags,dircvals,fluxvals,dx,dt,&
 			maxkspdim,np,itmax_restart,findAX,mgridprecond,&
-			gmres_tol,success,printflag,residual)
+			gmres_tol,success,printflag,residual,hyporder)
 
 	numden(:,ispecnum)=ninew
 
@@ -464,7 +466,7 @@ subroutine neutralsolve(nspecnum,printflag,residual)
 			vel,dcoeff,reac,dirc_bc_flags,&
 			flux_bc_flags,dircvals,fluxvals,dx,dt,&
 			maxkspdim,np,itmax_restart,findAX,mgridprecond,&
-			gmres_tol,success,printflag,residual)
+			gmres_tol,success,printflag,residual,hyporder)
 
 	numden(:,nspecnum)=nnew
 
@@ -580,7 +582,7 @@ subroutine electronsolve(printflag,residual)
 			vel,dcoeff,reac,dirc_bc_flags,&
 			flux_bc_flags,dircvals,fluxvals,dx,dt,&
 			maxkspdim,np,itmax_restart,findAX,mgridprecond,&
-			gmres_tol,success,printflag,residual)
+			gmres_tol,success,printflag,residual,hyporder)
 
 	!floor electron density
 	do i=1,np
@@ -672,7 +674,7 @@ subroutine elecenergysolve(printflag,residual)
 			vel,dcoeff,reac,dirc_bc_flags,&
 			flux_bc_flags,dircvals,fluxvals,dx,dt,&
 			maxkspdim,np,itmax_restart,findAX,mgridprecond,&
-			gmres_tol,success,printflag,residual)
+			gmres_tol,success,printflag,residual,hyporder)
 
 	!update electron temperature
 	do i=1,np

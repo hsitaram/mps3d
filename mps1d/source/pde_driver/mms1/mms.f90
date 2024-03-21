@@ -103,7 +103,7 @@ program mms
         vel,dcoeff,reac,dirc_bc_flags,&
         flux_bc_flags,dircvals,fluxvals,dx,dt,&
         maxkspdim,np,itmax_restart,findAX,mgridprecond,&
-        gmres_tol,success,printflag,initial_res)
+        gmres_tol,success,printflag,initial_res,2)
 
 
     call writesoln("gmres_pdesoln.dat",phi,np,xmin,dx)
