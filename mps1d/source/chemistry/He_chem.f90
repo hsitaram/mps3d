@@ -202,7 +202,7 @@ subroutine assignreactions()
 	products(rnum,HE)   = 1
 	!-----------------------------------
 	isratearrh(rnum) = .true.
-	k_arrh(1,rnum)   = 1.3d-33*(cm_to_m**3)
+	k_arrh(1,rnum)   = 1.3d-33*(cm_to_m**6)
 	k_arrh(2,rnum)   = ZERO
 	k_arrh(3,rnum)   = ZERO
 	!-----------------------------------
@@ -222,7 +222,7 @@ subroutine assignreactions()
 	products(rnum,HE)   = 1
 	!-----------------------------------
 	isratearrh(rnum) = .true.
-	k_arrh(1,rnum)   = 1.d-31*(cm_to_m**3)
+	k_arrh(1,rnum)   = 1.d-31*(cm_to_m**6)
 	k_arrh(2,rnum)   = ZERO
 	k_arrh(3,rnum)   = ZERO
 	!-----------------------------------

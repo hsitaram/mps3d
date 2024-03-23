@@ -11,7 +11,7 @@ contains
             reac,dirc_bc_flags,flux_bc_flags,&
             dircvals,fluxvals,dx,dt,Hmat,&
             kspvecs,findAX,precond,&
-            lucky,luckykspdim,nanflag,hypfluxorder)
+            lucky,luckykspdim,nanflag,fluxscheme)
 
         integer,intent(in)    :: j,n,maxkspdim
         real*8, intent(inout) :: Hmat(maxkspdim+1,maxkspdim)
@@ -24,7 +24,7 @@ contains
         logical,intent(in)    :: dirc_bc_flags(2),flux_bc_flags(2)
         real*8, intent(in)    :: dircvals(2),fluxvals(2)
         real*8, intent(in)    :: timederivfactor
-        integer, intent(in)   :: hypfluxorder
+        integer, intent(in)   :: fluxscheme
 
         external :: findAX
         external :: precond
@@ -49,12 +49,12 @@ contains
         vj = kspvecs(:,j)
 
         call findAX(Avj,vj,timederivfactor,vel,dcoeff,reac,dirc_bc_flags,&
-            flux_bc_flags,dircvals,fluxvals,dx,dt,n,hypfluxorder)
+            flux_bc_flags,dircvals,fluxvals,dx,dt,n,fluxscheme)
 
         call precond(MinvAvj,Avj,timederivfactor,vel,dcoeff,reac,&
             dirc_bc_flags,&
             flux_bc_flags,dircvals,fluxvals,&
-            dx,dt,n,hypfluxorder)
+            dx,dt,n,fluxscheme)
 
         !Gram Schmidt orthogonalization
         wj = MinvAvj
@@ -184,7 +184,7 @@ contains
             dirc_bc_flags,flux_bc_flags,&
             dircvals,fluxvals,dx,dt,maxkspdim,&
             n,nrestarts,findAX,&
-            precond,tol,success,printflag,initial_res,hypfluxorder)
+            precond,tol,success,printflag,initial_res,fluxscheme)
 
         external :: findAX, precond
 
@@ -195,7 +195,7 @@ contains
         real*8, intent(in)    :: tol
         logical, intent(out)  :: success
         logical, intent(in)   :: printflag
-        integer, intent(in)   :: hypfluxorder
+        integer, intent(in)   :: fluxscheme
 
         real*8, intent(out)   :: initial_res
         real*8, intent(in)    :: vel(n),dcoeff(n),reac(n)
@@ -235,7 +235,7 @@ contains
         Ax0        = ZERO
         call findAX(Ax0,x0,timederivfactor,vel,dcoeff,reac,&
             dirc_bc_flags,flux_bc_flags,&
-            dircvals,fluxvals,dx,dt,n,hypfluxorder)
+            dircvals,fluxvals,dx,dt,n,fluxscheme)
 
         !initial residual
         r0 = b-Ax0
@@ -263,7 +263,7 @@ contains
             Minvb      = ZERO
 
             call precond(Minvb,b,timederivfactor,vel,dcoeff,reac,dirc_bc_flags,&
-                flux_bc_flags,dircvals,fluxvals,dx,dt,n,hypfluxorder)
+                flux_bc_flags,dircvals,fluxvals,dx,dt,n,fluxscheme)
             call findnorm(b_norm,Minvb,n)
 
             if(b_norm .eq. 0.d0) then
@@ -277,14 +277,14 @@ contains
             !find Ax0
             call findAX(Ax0,x0,timederivfactor,vel,dcoeff,reac,&
                 dirc_bc_flags,flux_bc_flags,&
-                dircvals,fluxvals,dx,dt,n,hypfluxorder)
+                dircvals,fluxvals,dx,dt,n,fluxscheme)
 
             !initial residual
             r0 = b-Ax0
 
             !precondition residual
             call precond(Minvr,r0,timederivfactor,vel,dcoeff,reac,dirc_bc_flags,&
-                flux_bc_flags,dircvals,fluxvals,dx,dt,n,hypfluxorder)
+                flux_bc_flags,dircvals,fluxvals,dx,dt,n,fluxscheme)
 
             !assign residual to be the preconditioned residual
             r  = Minvr
@@ -309,7 +309,7 @@ contains
                     timederivfactor,vel,dcoeff,&
                     reac,dirc_bc_flags,flux_bc_flags,&
                     dircvals,fluxvals,dx,dt,Hmat,kspvectors,findAX,precond,&
-                    lucky,luckykspdim,nanflag,hypfluxorder)
+                    lucky,luckykspdim,nanflag,fluxscheme)
 
                 !call printmat(kspvectors,n,maxkspdim+1)
 
