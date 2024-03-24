@@ -93,6 +93,8 @@ subroutine init()
 
 	dx = length/(np-1)
 
+        read(inpfptr,*) temp,fluxscheme
+
 	!Restart parameters
 	read(inpfptr,*) temp
 	read(inpfptr,*) temp,restart_option
@@ -277,11 +279,12 @@ subroutine potentialsolve(printflag,residual)
 	call findrhs(b,phiold,timederivfactor,source,dirc_bc_flags, &
 			 flux_bc_flags,dircvals,fluxvals,dx,dt,np)
  	
+        !fluxscheme set to 1, pure diffusion solve anyway :)
 	call performgmres(b,phiold,phi,timederivfactor,&
 			vel,dcoeff,reac,dirc_bc_flags,&
 			flux_bc_flags,dircvals,fluxvals,dx,dt,&
 			maxkspdim,np,itmax_restart,findAX,mgridprecond,&
-			gmres_tol,success,printflag,residual,fluxscheme)
+			gmres_tol,success,printflag,residual,1) 
 	
 	call compute_efield()
 
@@ -462,11 +465,12 @@ subroutine neutralsolve(nspecnum,printflag,residual)
 	call findrhs(b,nold,timederivfactor,source,dirc_bc_flags, &
 			 flux_bc_flags,dircvals,fluxvals,dx,dt,np)
  	
+        !fluxscheme set to 1, pure diffusion solve anyway :)
 	call performgmres(b,nold,nnew,timederivfactor,&
 			vel,dcoeff,reac,dirc_bc_flags,&
 			flux_bc_flags,dircvals,fluxvals,dx,dt,&
 			maxkspdim,np,itmax_restart,findAX,mgridprecond,&
-			gmres_tol,success,printflag,residual,fluxscheme)
+			gmres_tol,success,printflag,residual,1)
 
 	numden(:,nspecnum)=nnew
 

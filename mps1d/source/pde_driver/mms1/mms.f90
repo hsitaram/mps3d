@@ -28,8 +28,7 @@ program mms
 
     print *,"enter no: of points (2^n+1)" 
     read(*,*) np
-    print *,"enter fluxscheme (1-upwind,2-WAF,3-central,4-SG)"
-    read(*,*) fluxscheme 
+    fluxscheme=3 !central
 
     allocate(dcoeff(np))
     allocate(vel(np))
@@ -73,9 +72,9 @@ program mms
     !flux f=-0.25 at  x=1
 
     timederivfactor = ZERO
-    dirc_bc_flags(1) = .false.
+    dirc_bc_flags(1) = .true.
     dirc_bc_flags(2) = .true.
-    flux_bc_flags(1) = .true.
+    flux_bc_flags(1) = .false.
     flux_bc_flags(2) = .false.
 
     dircvals(1) = ZERO
