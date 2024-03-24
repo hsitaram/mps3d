@@ -55,9 +55,11 @@ contains
         c_half=0.5*(cL+cR)
 
         if(c_half .ge. 0.d0) then
-            flux=cL*uL
+            flux=c_half*uL
+            !flux=cL*uL
         else
-            flux=cR*uR
+            flux=c_half*uR
+            !flux=cR*uR
         endif
 
     end subroutine find_fo_upwind_flux
@@ -188,8 +190,8 @@ contains
         real*8 :: D_half
         real*8, parameter :: eps=1e-15
 
-        !D_half = HALF*(DL+DR)
-        D_half = 2.d0*DL*DR/(DL+DR+eps);
+        D_half = HALF*(DL+DR)
+        !D_half = 2.d0*DL*DR/(DL+DR+eps);
         flux = D_half*(uR-uL)/dx
 
     end subroutine finddiffusiveflux
@@ -364,15 +366,18 @@ contains
                     cR = vel(i+1)
                     chalf = HALF*(cL+cR)
                     if(chalf .ge. 0) then
-                        diag = diag + cL/dx
+                        !diag = diag + cL/dx
+                        diag = diag + chalf/dx
                     else
-                        offdiag = offdiag + cR*X(i+1)/dx
+                        !offdiag = offdiag + cR*X(i+1)/dx
+                        offdiag = offdiag + chalf*X(i+1)/dx
                     endif
 
                     !diffusion term
                     dL = dcoeff(i)
                     dR = dcoeff(i+1)
-                    dhalf = 2.0*dL*dR/(dL+dR+eps)
+                    dhalf = 0.5d0*(dL+dR)
+                    !dhalf = 2.0*dL*dR/(dL+dR+eps)
 
                     diag = diag + dhalf/dx2
                     offdiag = offdiag - X(i+1)*dhalf/dx2
@@ -386,15 +391,18 @@ contains
                     cR = vel(i)
                     chalf = HALF*(cL+cR)
                     if(chalf .ge. 0) then
-                        offdiag = offdiag - cL*X(i-1)/dx
+                        !offdiag = offdiag - cL*X(i-1)/dx
+                        offdiag = offdiag - chalf*X(i-1)/dx
                     else
-                        diag = diag - cR/dx
+                        !diag = diag - cR/dx
+                        diag = diag - chalf/dx
                     endif
 
                     !diffusion term
                     dL = dcoeff(i-1)
                     dR = dcoeff(i)
-                    dhalf = 2.0*dL*dR/(dL+dR+eps)
+                    dhalf = 0.5d0*(dL+dR)
+                    !dhalf = 2.d0*dL*dR/(dL+dR+eps)
 
                     diag = diag + dhalf/dx2
                     offdiag = offdiag - X(i-1)*dhalf/dx2
