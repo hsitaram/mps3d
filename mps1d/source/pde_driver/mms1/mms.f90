@@ -104,7 +104,7 @@ program mms
     call performgmres(b,phiold,phi,timederivfactor,&
         vel,dcoeff,reac,dirc_bc_flags,&
         flux_bc_flags,dircvals,fluxvals,dx,dt,&
-        maxkspdim,np,itmax_restart,findAX,noprecond,&
+        maxkspdim,np,itmax_restart,findAX,mgridprecond,&
         gmres_tol,success,printflag,initial_res,fluxscheme)
 
 

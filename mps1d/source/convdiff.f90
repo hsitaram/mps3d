@@ -7,18 +7,22 @@ module convdiff
 
 contains
     !===============================================================
-    subroutine find_sg_exponential_flux(cL,cR,DL,DR,uL,uR,dx,flux)
+    subroutine find_sg_exponential_flux(cL,cR,DL,DR,uL,uR,dx,wL,wR,flux)
 
         real*8,intent(in) :: cL,cR
         real*8,intent(in) :: DL,DR
         real*8,intent(in) :: uL,uR
         real*8,intent(in) :: dx
-        real*8,intent(out) :: flux
+        real*8,intent(out) :: wL,wR,flux
 
         real*8 :: c_half, D_half
         real*8,parameter :: eps=1.d-10
         real*8 :: Pe
         real*8 :: sign_c
+
+        flux=0.d0
+        wL=0.d0
+        wR=0.d0
 
         c_half=0.5*(cL+cR)
         D_half = 2.d0*DL*DR/(DL+DR+eps);
@@ -31,58 +35,72 @@ contains
 
         if(D_half .lt. eps) then
             !upwind
-            flux=cL*uL*0.5d0*(1.d0+sign_c)+cR*uR*0.5d0*(1.d0-sign_c)
+            wL=cL*0.5d0*(1.d0+sign_c)
+            wR=cR*0.5d0*(1.d0-sign_c)
         else
             Pe=c_half*dx/D_half
             if(Pe .lt. eps) then
-                flux=(uL-uR)/dx*D_half
+                wL=D_half/dx
+                wR=-D_half/dx
             else 
                 !Scharfetter Gummel Exponential scheme
-                flux=c_half*(uL*exp(Pe)-uR)/(exp(Pe)-1.d0)
+                wL =  c_half*exp(Pe)/(exp(Pe)-1.d0)
+                wR = -c_half/(exp(Pe)-1.d0)
             endif
         endif
+       
+        flux=wL*uL+wR*uR
 
     end subroutine find_sg_exponential_flux
     !===============================================================
-    subroutine find_fo_upwind_flux(cL,cR,uL,uR,flux)
+    subroutine find_fo_upwind_flux(cL,cR,uL,uR,wL,wR,flux)
 
         real*8,intent(in) :: cL,cR
         real*8,intent(in) :: uL,uR
-        real*8,intent(out) :: flux
+        real*8,intent(out) :: wL,wR,flux
 
         real*8 :: c_half
 
         c_half=0.5*(cL+cR)
+        wL=0.d0
+        wR=0.d0
+        flux=0.d0
 
         if(c_half .ge. 0.d0) then
-            flux=c_half*uL
-            !flux=cL*uL
+            !flux=c_half*uL
+            wL=cL
+            wR=0.d0
         else
-            flux=c_half*uR
-            !flux=cR*uR
+            !flux=c_half*uR
+            wL=0.d0
+            wR=cR
         endif
 
+        flux=wL*uL+wR*uR
+    
     end subroutine find_fo_upwind_flux
     !===============================================================
-    subroutine find_so_central_flux(cL,cR,uL,uR,flux)
+    subroutine find_so_central_flux(cL,cR,uL,uR,wL,wR,flux)
 
         real*8,intent(in) :: cL,cR
         real*8,intent(in) :: uL,uR
-        real*8,intent(out) :: flux
+        real*8, intent(out) :: wL,wR,flux
 
-        flux=0.5*(cL*uL+cR*uR)
+        wL=0.5*cL
+        wR=0.5*cR
+        flux=wL*uL+wR*uR
 
     end subroutine find_so_central_flux
     !===============================================================
     !MINBEE vesion of limiter for
     !WAF scheme, see page 502, 
     !Toro's Riemann solver textbook
-    subroutine find_so_WAF_flux(cLm1,cL,cR,cRp1,uLm1,uL,uR,uRp1,dt,dx,flux)
+    subroutine find_so_WAF_flux(cLm1,cL,cR,cRp1,uLm1,uL,uR,uRp1,dt,dx,wL,wR,flux)
 
         real*8,intent(in) :: cLm1,cL,cR,cRp1
         real*8,intent(in) :: uLm1,uL,uR,uRp1
         real*8,intent(in) :: dt,dx
-        real*8,intent(out) :: flux
+        real*8,intent(out) :: wL,wR,flux
 
         real*8 :: r, c_half,c
         real*8 :: eps,lim,sign_c
@@ -112,7 +130,10 @@ contains
             lim=abs(c)
         endif
 
+        wL=0.5*cL+0.5*sign_c*lim*cL
+        wR=0.5*cR-0.5*sign_c*lim*cR
         flux=0.5*(cL*uL+cR*uR)-0.5*sign_c*lim*(cR*uR-cL*uL)
+        !flux=wL*uL+wR*uR
 
     end subroutine find_so_WAF_flux
     !===============================================================
@@ -137,13 +158,14 @@ contains
 
     end subroutine slope_limited_reconstruct_lr
     !===============================================================
-    subroutine find_so_MH_flux(cim1,ci,cip1,cip2,uim1,ui,uip1,uip2,dt,dx,flux)
+    subroutine find_so_MH_flux(cim1,ci,cip1,cip2,uim1,ui,uip1,uip2,dt,dx,wL,wR,flux)
 
         !we are looking at face (i+1/2)
         !c is velocity, u is state
         real*8,intent(in) :: cim1,ci,cip1,cip2
         real*8,intent(in) :: uim1,ui,uip1,uip2
         real*8,intent(in) :: dt,dx
+        real*8,intent(out) :: wL,wR
         real*8,intent(out) :: flux
 
         real*8 :: vel,u_i_L,u_i_R
@@ -174,25 +196,30 @@ contains
         uLbar=u_i_R+0.5*dt/dx*(flx_i_L-flx_i_R)
         uRbar=u_ip1_L+0.5*dt/dx*(flx_ip1_L-flx_ip1_R)
 
+        wL=c_i_R*0.5*(1.d0+sign_vel)
+        wR=c_ip1_L*0.5*(1.d0-sign_vel)
         flux=uLbar*c_i_R*0.5*(1.d0+sign_vel)+&
             uRbar*c_ip1_L*0.5*(1.d0-sign_vel)
 
 
     end subroutine find_so_MH_flux
     !===============================================================
-    subroutine finddiffusiveflux(DL,DR,uL,uR,dx,flux)
+    subroutine finddiffusiveflux(DL,DR,uL,uR,dx,wL,wR,flux)
 
         real*8,intent(in) :: DL,DR
         real*8,intent(in) :: uL,uR
         real*8,intent(in) :: dx
-        real*8,intent(out) :: flux
+        real*8,intent(out) :: wL,wR,flux
 
         real*8 :: D_half
         real*8, parameter :: eps=1e-15
 
-        D_half = HALF*(DL+DR)
-        !D_half = 2.d0*DL*DR/(DL+DR+eps);
-        flux = D_half*(uR-uL)/dx
+        !D_half = HALF*(DL+DR)
+        D_half = 2.d0*DL*DR/(DL+DR+eps);
+
+        flux = -D_half*(uR-uL)/dx
+        wL = D_half/dx
+        wR = -D_half/dx
 
     end subroutine finddiffusiveflux
     !===============================================================
@@ -211,7 +238,8 @@ contains
         real*8, intent(in) :: timederivfactor
 
         integer :: i
-        real*8 :: flux
+        real*8 :: flux,wLconv,wRconv
+        real*8 :: wLdiff,wRdiff
         real*8 :: dx2
 
         dx2 = dx*dx
@@ -219,38 +247,39 @@ contains
         AX(:) = timederivfactor*X(:)/dt
 
         !convection and diffusion terms
+        !loop over faces
         do i=1,n-1
 
             if(fluxscheme==1) then
-                call find_fo_upwind_flux(vel(i),vel(i+1),X(i),X(i+1),flux)
+                call find_fo_upwind_flux(vel(i),vel(i+1),X(i),X(i+1),wLconv,wRconv,flux)
             else if(fluxscheme==2 .and. timederivfactor .ne. 0.d0) then
                 if(i==1) then
                     call find_so_WAF_flux(vel(i),vel(i),vel(i+1),vel(i+2),X(i),X(i),X(i+1),X(i+2),&
-                        dt,dx,flux)
+                        dt,dx,wLconv,wRconv,flux)
                 else if(i==n-1) then
                     call find_so_WAF_flux(vel(i-1),vel(i),vel(i+1),vel(i+1),X(i-1),X(i),X(i+1),X(i+1),&
-                        dt,dx,flux)
+                        dt,dx,wLconv,wRconv,flux)
                 else 
                     !call find_so_MH_flux(vel(i-1),vel(i),vel(i+1),vel(i+2),X(i-1),X(i),X(i+1),X(i+2),&
                     !        timederivfactor*dt,dx,flux)
                     call find_so_WAF_flux(vel(i-1),vel(i),vel(i+1),vel(i+2),X(i-1),X(i),X(i+1),X(i+2),&
-                        dt,dx,flux)
+                        dt,dx,wLconv,wRconv,flux)
                 endif
             else if(fluxscheme==3) then
-                call find_so_central_flux(vel(i),vel(i+1),X(i),X(i+1),flux)
+                call find_so_central_flux(vel(i),vel(i+1),X(i),X(i+1),wLconv,wRconv,flux)
             else if(fluxscheme==4) then
-                call find_sg_exponential_flux(vel(i),vel(i+1),dcoeff(i),dcoeff(i+1),X(i),X(i+1),dx,flux)
+                call find_sg_exponential_flux(vel(i),vel(i+1),dcoeff(i),dcoeff(i+1),X(i),X(i+1),dx,wLconv,wRconv,flux)
             else
                 print *,"Hyporder with timederivfactor not implemented, calling first order.."
-                call find_fo_upwind_flux(vel(i),vel(i+1),X(i),X(i+1),flux)
+                call find_fo_upwind_flux(vel(i),vel(i+1),X(i),X(i+1),wLconv,wRconv,flux)
             endif
 
             AX(i)   = AX(i)   + flux/dx
             AX(i+1) = AX(i+1) - flux/dx
             if(fluxscheme .ne. 4) then
-                call finddiffusiveflux(dcoeff(i),dcoeff(i+1),X(i),X(i+1),dx,flux)
-                AX(i)   = AX(i)   - flux/dx
-                AX(i+1) = AX(i+1) + flux/dx
+                call finddiffusiveflux(dcoeff(i),dcoeff(i+1),X(i),X(i+1),dx,wLdiff,wRdiff,flux)
+                AX(i)   = AX(i)   + flux/dx
+                AX(i+1) = AX(i+1) - flux/dx
             endif
         enddo
 
@@ -346,6 +375,7 @@ contains
         real*8 :: dx2
         real*8 :: resnorm
         real*8, parameter :: eps=1.d-10
+        real*8 :: wL,wR,flux
 
         dx2 = dx*dx
         AX  = ZERO
@@ -362,50 +392,83 @@ contains
                 !right face
                 if(i .lt. n) then
                     !convection term
-                    cL = vel(i)
-                    cR = vel(i+1)
-                    chalf = HALF*(cL+cR)
-                    if(chalf .ge. 0) then
-                        !diag = diag + cL/dx
-                        diag = diag + chalf/dx
+                    if(fluxscheme==1) then
+                        call find_fo_upwind_flux(vel(i),vel(i+1),X(i),X(i+1),wL,wR,flux)
+                    else if(fluxscheme==2 .and. timederivfactor .ne. 0.d0) then
+                        !first cell 
+                        if(i==1) then
+                            call find_so_WAF_flux(vel(i),vel(i),vel(i+1),vel(i+2),X(i),X(i),X(i+1),X(i+2),&
+                                dt,dx,wL,wR,flux)
+                        !last but one cell
+                        else if(i==n-1) then
+                            call find_so_WAF_flux(vel(i-1),vel(i),vel(i+1),vel(i+1),X(i-1),X(i),X(i+1),X(i+1),&
+                                dt,dx,wL,wR,flux)
+                        else 
+                            !call find_so_MH_flux(vel(i-1),vel(i),vel(i+1),vel(i+2),X(i-1),X(i),X(i+1),X(i+2),&
+                            !        timederivfactor*dt,dx,flux)
+                            call find_so_WAF_flux(vel(i-1),vel(i),vel(i+1),vel(i+2),X(i-1),X(i),X(i+1),X(i+2),&
+                                dt,dx,wL,wR,flux)
+                        endif
+                    else if(fluxscheme==3) then
+                        call find_so_central_flux(vel(i),vel(i+1),X(i),X(i+1),wL,wR,flux)
+                    else if(fluxscheme==4) then
+                        call find_sg_exponential_flux(vel(i),vel(i+1),dcoeff(i),dcoeff(i+1),X(i),X(i+1),dx,wL,wR,flux)
                     else
-                        !offdiag = offdiag + cR*X(i+1)/dx
-                        offdiag = offdiag + chalf*X(i+1)/dx
+                        print *,"Hyporder with timederivfactor not implemented, calling first order.."
+                        call find_fo_upwind_flux(vel(i),vel(i+1),X(i),X(i+1),wL,wR,flux)
                     endif
+                    
+                    diag = diag + wL/dx
+                    offdiag = offdiag + wR*X(i+1)/dx
 
-                    !diffusion term
-                    dL = dcoeff(i)
-                    dR = dcoeff(i+1)
-                    dhalf = 0.5d0*(dL+dR)
-                    !dhalf = 2.0*dL*dR/(dL+dR+eps)
 
-                    diag = diag + dhalf/dx2
-                    offdiag = offdiag - X(i+1)*dhalf/dx2
+                    if(fluxscheme .ne. 4) then
+                        call finddiffusiveflux(dcoeff(i),dcoeff(i+1),X(i),X(i+1),dx,wL,wR,flux)
+                        diag = diag + wL/dx
+                        offdiag = offdiag + X(i+1)*wR/dx
+                    endif
                 endif
 
                 !left face
                 if(i .gt. 1) then
-
+                    
                     !convection term
-                    cL = vel(i-1)
-                    cR = vel(i)
-                    chalf = HALF*(cL+cR)
-                    if(chalf .ge. 0) then
-                        !offdiag = offdiag - cL*X(i-1)/dx
-                        offdiag = offdiag - chalf*X(i-1)/dx
+                    if(fluxscheme==1) then
+                        call find_fo_upwind_flux(vel(i-1),vel(i),X(i-1),X(i),wL,wR,flux)
+                    
+                    else if(fluxscheme==2 .and. timederivfactor .ne. 0.d0) then
+                        if(i==2) then
+                            call find_so_WAF_flux(vel(i-1),vel(i-1),vel(i),vel(i+1),X(i-1),X(i-1),X(i),X(i+1),&
+                                dt,dx,wL,wR,flux)
+                        else if(i==n) then
+                            call find_so_WAF_flux(vel(i-2),vel(i-1),vel(i),vel(i),X(i-2),X(i-1),X(i),X(i),&
+                                dt,dx,wL,wR,flux)
+                        else 
+                            !call find_so_MH_flux(vel(i-1),vel(i),vel(i+1),vel(i+2),X(i-1),X(i),X(i+1),X(i+2),&
+                            !        timederivfactor*dt,dx,flux)
+                            call find_so_WAF_flux(vel(i-2),vel(i-1),vel(i),vel(i+1),X(i-2),X(i-1),X(i),X(i+1),&
+                                dt,dx,wL,wR,flux)
+                        endif
+                    
+                    else if(fluxscheme==3) then
+                        call find_so_central_flux(vel(i-1),vel(i),X(i-1),X(i),wL,wR,flux)
+                    
+                    else if(fluxscheme==4) then
+                        call find_sg_exponential_flux(vel(i-1),vel(i),dcoeff(i-1),dcoeff(i),X(i-1),X(i),dx,wL,wR,flux)
+                    
                     else
-                        !diag = diag - cR/dx
-                        diag = diag - chalf/dx
+                        !print *,"Hyporder with timederivfactor not implemented, calling first order.."
+                        call find_fo_upwind_flux(vel(i-1),vel(i),X(i-1),X(i),wL,wR,flux)
                     endif
+                    
+                    diag = diag - wR/dx
+                    offdiag = offdiag - wL*X(i-1)/dx
 
-                    !diffusion term
-                    dL = dcoeff(i-1)
-                    dR = dcoeff(i)
-                    dhalf = 0.5d0*(dL+dR)
-                    !dhalf = 2.d0*dL*dR/(dL+dR+eps)
-
-                    diag = diag + dhalf/dx2
-                    offdiag = offdiag - X(i-1)*dhalf/dx2
+                    if(fluxscheme .ne. 4) then
+                        call finddiffusiveflux(dcoeff(i-1),dcoeff(i),X(i-1),X(i),dx,wL,wR,flux)
+                        diag = diag - wR/dx
+                        offdiag = offdiag - wL*X(i-1)/dx
+                    endif
                 endif
 
                 if(i .eq. 1) then
