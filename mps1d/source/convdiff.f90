@@ -27,19 +27,21 @@ contains
         c_half=0.5*(cL+cR)
         D_half = 2.d0*DL*DR/(DL+DR+eps);
 
-        if(c_half .le. 0) then
+        if(c_half .le. 0.d0) then
             sign_c=-1.d0
         else
             sign_c=1.d0
         endif
 
-        if(D_half .lt. eps) then
+        !should I check abs(D_half)
+        !hopefully it is positive!!
+        if(abs(D_half) .lt. eps) then
             !upwind
             wL=cL*0.5d0*(1.d0+sign_c)
             wR=cR*0.5d0*(1.d0-sign_c)
         else
             Pe=c_half*dx/D_half
-            if(Pe .lt. eps) then
+            if(abs(Pe) .lt. eps) then
                 wL=D_half/dx
                 wR=-D_half/dx
             else 

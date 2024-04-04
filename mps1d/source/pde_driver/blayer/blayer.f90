@@ -1,4 +1,4 @@
-program mms
+program blayer
     use convdiff
     use solvergmres_module
     implicit none
@@ -19,17 +19,23 @@ program mms
     integer :: ngs_it,ngs_inner_it,nvcycles
     logical :: success
     real*8 :: t,fintime
-    real*8  :: l2err,exactsoln
+    real*8  :: l2err
+    
+    real*8, allocatable :: exactsoln(:)
 
     real*8,allocatable  :: dcoeff(:),vel(:),reac(:),source(:)
     real*8,allocatable  :: b(:),phi(:),phiold(:)
     real*8,allocatable  :: res(:),AX(:)
     integer :: fluxscheme
+    real*8 :: const_vel,const_dcoeff
 
-    print *,"enter no: of points (2^n+1)" 
+    print *,"enter no: of points (2^n+1) (e.g. 65)" 
     read(*,*) np
     print *,"enter fluxscheme (1-upwind,2-WAF,3-central,4-SG)"
     read(*,*) fluxscheme 
+    print *,"enter vel, dcoeff: (e.g v=-1,dcoeff=0.1) note: do try negative velocities!!"
+    read(*,*) const_vel,const_dcoeff
+
 
     allocate(dcoeff(np))
     allocate(vel(np))
@@ -40,6 +46,7 @@ program mms
     allocate(phiold(np))
     allocate(res(np))
     allocate(AX(np))
+    allocate(exactsoln(np))
 
 
     dcoeff = ZERO
@@ -63,8 +70,8 @@ program mms
 
     !==================================================
     !PDE being solved
-    !d/dx (-u)=d/dx( 0.5 (du/dx)) + 2 u - x^2
-    !exact solution 0.5(x^2-x)
+    !d/dx (c u)=d/dx( D (du/dx))
+    !exact solution (exp(cx/D)-1)/(exp(c/D)-1)
 
     !boundary conditions
     !dirichlet u=0 at  x=0
@@ -78,17 +85,17 @@ program mms
     flux_bc_flags(1) = .false.
     flux_bc_flags(2) = .false.
 
-    dircvals(1) = ZERO
-    dircvals(2) = ZERO
-    fluxvals(1) = 0.25
-    fluxvals(2) = -0.25
+    dircvals(1) = 1.d0
+    dircvals(2) = 0.d0
+    fluxvals(1) = 0.d0
+    fluxvals(2) = 0.d0
 
     do i=1,np
         x = xmin + (i-1)*dx
-        vel(i)    =  -1.d0
-        dcoeff(i) =  0.5
-        reac(i)   =  2.d0
-        source(i) =  -x**2
+        vel(i)    =  const_vel
+        dcoeff(i) =  const_dcoeff
+        reac(i)   =  0.d0
+        source(i) =  0.d0
     enddo
     !==================================================
 
@@ -115,9 +122,12 @@ program mms
     l2err=0.d0    
     do i=1,np
         x = xmin + (i-1)*dx
-        exactsoln=0.5d0*(x**2-x)
-        l2err = l2err + (phi(i)-exactsoln)**2
+        exactsoln(i)=(exp(const_vel*x/const_dcoeff)-exp(const_vel/const_dcoeff))/(1.d0-exp(const_vel/const_dcoeff))
+        l2err = l2err + (phi(i)-exactsoln(i))**2
     enddo
+    
+    call writesoln("exactsoln.dat",exactsoln,np,xmin,dx)
+    print *,"==================================="    
 
     l2err=sqrt(l2err/np)
 
@@ -133,7 +143,7 @@ program mms
     deallocate(res)
     deallocate(AX)
 
-end program mms
+end program blayer
 
 subroutine writesoln(fname,soln,np,xmin,dx)
 
