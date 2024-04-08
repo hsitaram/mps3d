@@ -25,9 +25,12 @@ program mms
     real*8,allocatable  :: dcoeff(:),vel(:),reac(:),source(:)
     real*8,allocatable  :: b(:),phi(:),phiold(:)
     real*8,allocatable  :: res(:),AX(:)
+    integer :: fluxscheme
 
     print *,"enter no: of points (2^n+1), no: of timesteps"    
     read(*,*) np,ntsteps
+    print *,"enter fluxscheme (1-upwind,2-WAF,3-central,4-SG)"
+    read(*,*) fluxscheme 
 
     allocate(dcoeff(np))
     allocate(vel(np))
@@ -115,7 +118,7 @@ program mms
             vel,dcoeff,reac,dirc_bc_flags,&
             flux_bc_flags,dircvals,fluxvals,dx,dt,&
             maxkspdim,np,itmax_restart,findAX,mgridprecond,&
-            gmres_tol,success,printflag,initial_res)
+            gmres_tol,success,printflag,initial_res,fluxscheme)
 
         t=t+dt
         phiold=phi

@@ -21,6 +21,9 @@ program generic_pde
     integer :: itmax_restart,maxkspdim
     integer :: ngs_it,ngs_inner_it,nvcycles
     logical :: success
+    integer :: fluxscheme
+
+    fluxscheme=1
 
     dcoeff = ZERO
     vel    = ZERO
@@ -87,7 +90,7 @@ program generic_pde
     do i=1,ngs_it
         call gauss_seidel_smoothing(res,b,phi,timederivfactor,vel,dcoeff,reac,&
             dirc_bc_flags,flux_bc_flags,dircvals,&
-            fluxvals,dx,dt,np,ngs_inner_it,NEARZERO)
+            fluxvals,dx,dt,np,ngs_inner_it,NEARZERO,fluxscheme)
 
         call findnorm(norm,res,np)
         print *,"iteration:",i,"residual norm=",norm
@@ -106,10 +109,10 @@ program generic_pde
     do i=1,nvcycles
         call dovcycle(phi,b,timederivfactor,vel,dcoeff,reac,&
             dirc_bc_flags,flux_bc_flags,dircvals,&
-            fluxvals,dx,dt,np)
+            fluxvals,dx,dt,np,fluxscheme)
 
         call findAX(AX,phi,timederivfactor,vel,dcoeff,reac,dirc_bc_flags,&
-            flux_bc_flags,dircvals,fluxvals,dx,dt,np)
+            flux_bc_flags,dircvals,fluxvals,dx,dt,np,fluxscheme)
 
         res = b-AX
         !print *,"res:",res
@@ -140,7 +143,7 @@ program generic_pde
         vel,dcoeff,reac,dirc_bc_flags,&
         flux_bc_flags,dircvals,fluxvals,dx,dt,&
         maxkspdim,np,itmax_restart,findAX,mgridprecond,&
-        gmres_tol,success,printflag,initial_res)
+        gmres_tol,success,printflag,initial_res,fluxscheme)
 
     call writesoln("gmres_pdesoln.dat",phi,np,xmin,dx)
     print *,"==================================="    

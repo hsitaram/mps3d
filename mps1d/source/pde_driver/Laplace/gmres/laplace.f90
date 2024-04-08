@@ -21,6 +21,9 @@ program generic_pde
     integer :: itmax_restart,maxkspdim
     integer :: ngs_it,ngs_inner_it,nvcycles
     logical :: success
+    integer :: fluxscheme
+
+    fluxscheme=1
 
     dcoeff = ZERO
     vel    = ZERO
@@ -86,7 +89,7 @@ program generic_pde
         vel,dcoeff,reac,dirc_bc_flags,&
         flux_bc_flags,dircvals,fluxvals,dx,dt,&
         maxkspdim,np,itmax_restart,findAX,noprecond,&
-        gmres_tol,success,printflag,initial_res)
+        gmres_tol,success,printflag,initial_res,fluxscheme)
 
     print *,"phi:",phi
 
