@@ -46,8 +46,16 @@ contains
                 wR=-D_half/dx
             else 
                 !Scharfetter Gummel Exponential scheme
-                wL =  c_half*exp(Pe)/(exp(Pe)-1.d0)
-                wR = -c_half/(exp(Pe)-1.d0)
+                !need to avoid using super large exps
+                !for e.g. exp(1000) is inf
+                if(Pe .gt. 0.d0) then
+                   wL =  c_half/(1.d0-exp(-Pe))
+                   wR = -c_half*exp(-Pe)/(1.d0-exp(-Pe))
+                else
+                   wL =  c_half*exp(Pe)/(exp(Pe)-1.d0)
+                   wR = -c_half/(exp(Pe)-1.d0)
+                endif
+
             endif
         endif
        
