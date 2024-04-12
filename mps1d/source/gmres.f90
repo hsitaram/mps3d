@@ -296,6 +296,11 @@ contains
             v1 = r/beta
             kspvectors(:,1) = v1(:)
             beta_e1(1)      = beta
+            
+            if(beta/b_norm .le. eps) then
+                print *,"already solved with initial solution"
+                exit
+            endif
 
             if(printflag .eqv. .true.) print *,"restart iteration:",i,&
                 "normalized residual norm:",beta/b_norm
