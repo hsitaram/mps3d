@@ -437,25 +437,13 @@ function getspecmobility(specnum,specarray,elecfield,Te,Tg,Pg)  result(mobility)
         Te_in_eV = Te/eVtoK
         meanE = Te_in_eV*(1.5d0)
 
-        
-        !mobility from 
-        !Turner, Miles M., et al. "Simulation benchmarks for low-pressure
-        !plasmas: Capacitive discharges." 
-        !Physics of Plasmas 20.1 (2013): 013507.
-        Hepmob=2.69*(1+1.2d-3*(EbyN**2)+4.2d-8*(EbyN)**4)**(-0.125)
-        He2pmob=Hepmob
-
-        !computed by Taaresh (U Minnesota) using Turner's cross sections
-        elecmob = (-1.0)*exp(55.0 + 0.3942*log(meanE) + 2.134/meanE &
-                   -0.6433/meanE**2 + (0.7112d-01)/meanE**3) / N
-
         !reduced mobility obtained from Yuan and Raja,
         !IEEE. Trans. Plasma Sci.,31,4,2003
         !they say these are 393K, may be temperature
         !scaling is necessary
-        !elecmob = -0.1132*Pres_ratio
-	!Hepmob = 0.001482*Pres_ratio
-	!He2pmob = 0.002403*Pres_ratio
+        elecmob = -0.1132*Pres_ratio
+	Hepmob = 0.001482*Pres_ratio
+	He2pmob = 0.002403*Pres_ratio
 
 	if(specnum .eq. E) then
 		mobility = elecmob
