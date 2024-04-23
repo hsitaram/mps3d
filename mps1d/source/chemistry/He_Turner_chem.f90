@@ -103,7 +103,7 @@ subroutine assignreactions()
 	isratearrh(rnum) = .true.
 	k_arrh(1,rnum)   = 7.0d-14
 	k_arrh(2,rnum)   = 0.0
-	k_arrh(3,rnum)   = 5.7248896d5
+	k_arrh(3,rnum)   = 5.802253d5
 	!-----------------------------------
 	elecenergy(rnum) = -24.6
 	gasenergy(rnum)  =  ZERO

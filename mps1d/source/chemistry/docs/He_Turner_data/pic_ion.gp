@@ -11,4 +11,4 @@ set xrange [1.0:100]
 set yrange [1e-30:1e-12]
 set log
 plot 'fitting_24.58eV.dat' u 1:2 w lp lc 7 lw 2 lt 1 title "He + e -> He+ + 2e",\
-     'fitting_24.58eV.dat' u 1:(70e-15*exp(-74.0/$1)) w l lc 7 lw 2 lt 9 title ""
+     'fitting_24.58eV.dat' u 1:(70e-15*exp(-75.0/$1)) w l lc 7 lw 2 lt 9 title ""
